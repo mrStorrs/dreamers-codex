@@ -17,7 +17,7 @@ Skill input: use the user's message, including any paths or flags.
 - If the changed-files list is empty → output `No changes detected` and exit.
 
 ## Step 2 — Spawn Echo
-- `multi_agent_v1.spawn_agent` with the Echo role prompt. Prompt MUST include `Do NOT call update_plan.`
+- `multi_agent_v1.spawn_agent` with `agent_type: echo`. Prompt MUST include `Do NOT call update_plan.`
 - Pass: context (ad-hoc or milestone close-out — caller-supplied), changed-files list, diff base, plan paths (if applicable), prior review summary (if applicable).
 - Constraint to Echo: edits docs only — no production code, no tests. Stage with `git add`; do NOT commit.
 - Wait for Echo to return its structured chat output.
@@ -40,7 +40,7 @@ Do not use any non-Dreamers agent unless explicitly authorized by user.
 
 ## Subagent prompt — required content
 
-Every `multi_agent_v1.spawn_agent` invocation MUST include in the prompt:
+Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST include in the prompt:
 - **Context** — what this agent is being asked to do and why
 - **Prior work** — what was done previously, with absolute paths to any output files
 - **What is needed** — specific deliverable
@@ -49,7 +49,7 @@ Every `multi_agent_v1.spawn_agent` invocation MUST include in the prompt:
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when that result is needed before continuing.
+After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
 
 ## Continuation principle
 
@@ -61,7 +61,7 @@ At every natural pause between phases — where the skill has produced a meaning
 - **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md, CODEX.md, or .github/copilot-instructions.md when present` and fix errors before moving on.
+- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 

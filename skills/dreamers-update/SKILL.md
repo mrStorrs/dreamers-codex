@@ -1,6 +1,6 @@
 ---
 name: dreamers-update
-description: "Project-only skill for editing the Dreamers Codex system files. Sets directory scope, copilot-not-Claude framing, style standards, and cross-file sync rules (refs, dreamers-full mirror, READMEs, catalog). Use when the user asks for dreamers-update."
+description: "Project-only skill for editing the Dreamers Codex system files. Sets directory scope, Codex runtime framing, style standards, and cross-file sync rules (refs, dreamers-full mirror, READMEs, catalog). Use when the user asks for dreamers-update."
 ---
 
 ## Codex runtime
@@ -28,10 +28,10 @@ If no task description was provided, halt + ask by asking the user.
 
 ## Sync rules (after any edit)
 
-1. **Kernel blocks.** Source-of-truth = `dreamers/refs/*.md`. Inlined copies in skills must match byte-for-byte. If you edited inlined content, edit the source ref too and run `scripts/sync-refs.ps1`. CI's `verify-refs` workflow fails on drift.
-2. **dreamers-implement is inlined in `dreamers-full` Phase 2.** Edits to `dreamers-implement`'s flow (test-writing, type-check, apply-findings, user-testing gate) must be mirrored in `.github/skillsdreamers-full/SKILL.md`.
-3. **READMEs.** Update root `README.md` AND `.github/skills/<skill>/readme.md` when a skill's flow, args, or triggers change.
-4. **Catalog.** Update `.github/catalog.json` `items[]` (description / path / tags) + `collections[].members[]` for new or renamed skills, agents, refs, or templates. Project-only skills (not installed via `Install-Dreamers.ps1`) skip this.
+1. **Kernel blocks.** Source-of-truth = `dreamers/refs/*.md`. Inlined copies in skills and agent TOMLs must match byte-for-byte. If you edited inlined content, edit the source ref too and run `scripts/sync-refs.ps1 -Sync`; CI's `verify-refs` workflow fails on drift.
+2. **dreamers-implement is inlined in `dreamers-full` Phase 2.** Edits to `dreamers-implement`'s flow (test-writing, type-check, apply-findings, user-testing gate) must be mirrored in `skills/dreamers-full/SKILL.md`.
+3. **READMEs.** Update root `README.md` AND `skills/<skill>/readme.md` when a skill's flow, args, or triggers change and that skill has a readme.
+4. **Catalog.** Update `.github/catalog.json` `items[]` (description / path / tags) + `collections[].members[]` for new or renamed skills, agents, refs, or templates.
 
 ## Git / PR
 

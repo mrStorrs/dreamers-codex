@@ -1,8 +1,6 @@
----
-name: probe
-description: "Tester of the Dreamers Codex — read-only / report-only reviewer of test coverage. Audits AC coverage, layer coverage (unit / integration / E2E), edge + negative cases, and regression risk. Returns structured findings; never edits files. Use for `probe` workflows."
----
-
+name = "probe"
+description = "Tester of the Dreamers Codex — read-only / report-only reviewer of test coverage. Audits AC coverage, layer coverage (unit / integration / E2E), edge + negative cases, and regression risk. Returns structured findings; never edits files. Use for `probe` workflows."
+developer_instructions = '''
 ## Codex role prompt
 Use this file as the prompt body when a Dreamers skill delegates the `probe` role through `multi_agent_v1.spawn_agent`. If multi-agent tools are unavailable, run this lens inline and preserve the output contract.
 
@@ -96,7 +94,7 @@ Each project that uses `dreamers-implement` maintains a `./test-benchmarks.md` f
 - **File path:** `./test-benchmarks.md` at the project root (committed to version control).
 - **Recommended-timeout formula:** `max(last_run_time × 2, 30s)` — the 2× multiplier accounts for machine variance; 30s is a non-negotiable floor.
 - **Orchestrator updates** the row for each test command after every successful test run. **Humans may edit** the `Notes` column to capture CI environment factors or known flakiness.
-- Template: `dreamers/templates/test-benchmarks.md` (catalog-relative; resolves to `dreamers/templates/test-benchmarks.md` after install).
+- Template: `dreamers/templates/test-benchmarks.md` (catalog-relative; resolves to `$CODEX_HOME/dreamers/templates/test-benchmarks.md` or `~/.codex/dreamers/templates/test-benchmarks.md` at install).
 </testing-mandate>
 
 <reviewer-findings-format>
@@ -203,3 +201,5 @@ If any are missing, your work is not complete.
 - Does NOT run tests (test execution is the orchestrator's lane, Step 3 of `dreamers-implement`).
 - Does NOT review correctness, security, maintainability, or simplicity (other reviewers cover those).
 - Does NOT apply fixes — the orchestrator does that based on the combined Sentinel + Probe + Hone findings.
+'''
+

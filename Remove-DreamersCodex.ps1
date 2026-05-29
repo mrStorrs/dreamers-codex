@@ -1,6 +1,10 @@
 <#
 .SYNOPSIS
     Removes Dreamers Codex-managed files from the user's Codex home.
+
+.DESCRIPTION
+    Removes only files that the Dreamers Codex install script would place.
+    Does not remove user files from shared Codex directories.
 #>
 [CmdletBinding()]
 param(
@@ -11,16 +15,89 @@ param(
 $ErrorActionPreference = "Stop"
 $RepoRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
 
-function Remove-DreamersPath {
-    param([string]$Path, [string]$Label)
-    if (-not (Test-Path $Path)) { return 0 }
-    if ($DryRun) {
-        Write-Host "  WOULD REMOVE: $Label -> $Path" -ForegroundColor Yellow
-    } else {
-        Remove-Item -LiteralPath $Path -Recurse -Force
-        Write-Host "  REMOVED: $Label" -ForegroundColor Red
+$legacyAgentNames = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel")
+$legacyAgentTomlNames = @("bolt")
+
+function Remove-DreamersFiles {
+    param(
+        [string]$SourceDir,
+        [string]$TargetDir,
+        [string]$Label
+    )
+    if (-not (Test-Path $SourceDir)) { return 0 }
+    if (-not (Test-Path $TargetDir)) { return 0 }
+
+    $count = 0
+    foreach ($file in Get-ChildItem $SourceDir -File) {
+        $target = Join-Path $TargetDir $file.Name
+        if (-not (Test-Path $target)) { continue }
+        if ($DryRun) {
+            Write-Host "  WOULD REMOVE: $Label/$($file.Name) -> $target" -ForegroundColor Yellow
+        } else {
+            Remove-Item -LiteralPath $target -Force
+            Write-Host "  REMOVED: $Label/$($file.Name)" -ForegroundColor Red
+        }
+        $count++
     }
-    return 1
+
+    if (-not $DryRun -and (Test-Path $TargetDir)) {
+        $remaining = Get-ChildItem $TargetDir -Force
+        if ($remaining.Count -eq 0) {
+            Remove-Item -LiteralPath $TargetDir -Force
+            Write-Host "  REMOVED empty dir: $Label" -ForegroundColor DarkGray
+        }
+    }
+    return $count
+}
+
+function Remove-LegacyAgentFiles {
+    param(
+        [string]$TargetDir
+    )
+    if (-not (Test-Path $TargetDir)) { return 0 }
+
+    $count = 0
+    foreach ($name in $legacyAgentNames) {
+        $target = Join-Path $TargetDir "$name.md"
+        if (-not (Test-Path $target)) { continue }
+        if ($DryRun) {
+            Write-Host "  WOULD REMOVE: dreamers/agents/$name.md -> $target" -ForegroundColor Yellow
+        } else {
+            Remove-Item -LiteralPath $target -Force
+            Write-Host "  REMOVED legacy: dreamers/agents/$name.md" -ForegroundColor Red
+        }
+        $count++
+    }
+
+    if (-not $DryRun -and (Test-Path $TargetDir)) {
+        $remaining = Get-ChildItem $TargetDir -Force
+        if ($remaining.Count -eq 0) {
+            Remove-Item -LiteralPath $TargetDir -Force
+            Write-Host "  REMOVED empty dir: dreamers/agents" -ForegroundColor DarkGray
+        }
+    }
+    return $count
+}
+
+function Remove-LegacyAgentTomls {
+    param(
+        [string]$TargetDir
+    )
+    if (-not (Test-Path $TargetDir)) { return 0 }
+
+    $count = 0
+    foreach ($name in $legacyAgentTomlNames) {
+        $target = Join-Path $TargetDir "$name.toml"
+        if (-not (Test-Path $target)) { continue }
+        if ($DryRun) {
+            Write-Host "  WOULD REMOVE: agents/$name.toml -> $target" -ForegroundColor Yellow
+        } else {
+            Remove-Item -LiteralPath $target -Force
+            Write-Host "  REMOVED legacy: agents/$name.toml" -ForegroundColor Red
+        }
+        $count++
+    }
+    return $count
 }
 
 $verb = if ($DryRun) { "Dreamers Codex Remover (DRY RUN)" } else { "Dreamers Codex Remover" }
@@ -29,18 +106,25 @@ Write-Host "Target: $CodexHome`n"
 
 $total = 0
 
+Write-Host "[agents]" -ForegroundColor Cyan
+$total += Remove-DreamersFiles -SourceDir (Join-Path $RepoRoot "agents") -TargetDir (Join-Path $CodexHome "agents") -Label "agents"
+
 Write-Host "[skills]" -ForegroundColor Cyan
 $skillsRoot = Join-Path $RepoRoot "skills"
 if (Test-Path $skillsRoot) {
     Get-ChildItem $skillsRoot -Directory | Where-Object { $_.Name -like "dreamers-*" } | ForEach-Object {
-        $total += Remove-DreamersPath -Path (Join-Path (Join-Path $CodexHome "skills") $_.Name) -Label "skills/$($_.Name)"
+        $total += Remove-DreamersFiles -SourceDir $_.FullName -TargetDir (Join-Path (Join-Path $CodexHome "skills") $_.Name) -Label "skills/$($_.Name)"
     }
 }
 
 Write-Host "[dreamers]" -ForegroundColor Cyan
-foreach ($name in @("refs", "templates", "agents", "instructions")) {
-    $total += Remove-DreamersPath -Path (Join-Path (Join-Path $CodexHome "dreamers") $name) -Label "dreamers/$name"
+foreach ($name in @("refs", "templates", "instructions")) {
+    $total += Remove-DreamersFiles -SourceDir (Join-Path (Join-Path $RepoRoot "dreamers") $name) -TargetDir (Join-Path (Join-Path $CodexHome "dreamers") $name) -Label "dreamers/$name"
 }
 
+Write-Host "[legacy]" -ForegroundColor Cyan
+$total += Remove-LegacyAgentTomls -TargetDir (Join-Path $CodexHome "agents")
+$total += Remove-LegacyAgentFiles -TargetDir (Join-Path (Join-Path $CodexHome "dreamers") "agents")
+
 $action = if ($DryRun) { "Would remove" } else { "Removed" }
-Write-Host "`n$action $total Dreamers Codex item(s).`n" -ForegroundColor Cyan
+Write-Host "`n$action $total Dreamers Codex file(s).`n" -ForegroundColor Cyan

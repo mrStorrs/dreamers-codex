@@ -39,7 +39,7 @@ Do not use any non-Dreamers agent unless explicitly authorized by user.
 
 ## Subagent prompt — required content
 
-Every `multi_agent_v1.spawn_agent` invocation MUST include in the prompt:
+Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST include in the prompt:
 - **Context** — what this agent is being asked to do and why
 - **Prior work** — what was done previously, with absolute paths to any output files
 - **What is needed** — specific deliverable
@@ -48,7 +48,7 @@ Every `multi_agent_v1.spawn_agent` invocation MUST include in the prompt:
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when that result is needed before continuing.
+After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
 
 ## Continuation principle
 
@@ -60,7 +60,7 @@ At every natural pause between phases — where the skill has produced a meaning
 - **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md, CODEX.md, or .github/copilot-instructions.md when present` and fix errors before moving on.
+- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 
@@ -183,7 +183,7 @@ Each project that uses `dreamers-implement` maintains a `./test-benchmarks.md` f
 - **File path:** `./test-benchmarks.md` at the project root (committed to version control).
 - **Recommended-timeout formula:** `max(last_run_time × 2, 30s)` — the 2× multiplier accounts for machine variance; 30s is a non-negotiable floor.
 - **Orchestrator updates** the row for each test command after every successful test run. **Humans may edit** the `Notes` column to capture CI environment factors or known flakiness.
-- Template: `dreamers/templates/test-benchmarks.md` (catalog-relative; resolves to `dreamers/templates/test-benchmarks.md` after install).
+- Template: `dreamers/templates/test-benchmarks.md` (catalog-relative; resolves to `$CODEX_HOME/dreamers/templates/test-benchmarks.md` or `~/.codex/dreamers/templates/test-benchmarks.md` at install).
 </testing-mandate>
 
 <comment-rules>

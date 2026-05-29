@@ -29,7 +29,7 @@ Mark each item `in_progress` when starting, `completed` when done. Never batch c
 
 **Objective:** Identify sub-topics within the main research topic before committing to deep research.
 
-Use `multi_agent_v1.spawn_agent` with the Sage role prompt and this context:
+Use `multi_agent_v1.spawn_agent` with `agent_type: sage` and this context:
 - **Mode:** preliminary
 - **Task:** Identify 5-10 distinct sub-topics/dimensions of the research question
 - **Output:** `scope.md` with numbered sub-topics, each with:

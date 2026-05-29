@@ -1,8 +1,6 @@
----
-name: sage
-description: "Researcher of the Dreamers Codex — conducts deep, multi-perspective research on any topic. Produces comprehensive, citation-backed reports with verified sources. Use for `sage` workflows."
----
-
+name = "sage"
+description = "Researcher of the Dreamers Codex — conducts deep, multi-perspective research on any topic. Produces comprehensive, citation-backed reports with verified sources. Use for `sage` workflows."
+developer_instructions = '''
 ## Codex role prompt
 Use this file as the prompt body when a Dreamers skill delegates the `sage` role through `multi_agent_v1.spawn_agent`. If multi-agent tools are unavailable, run this lens inline and preserve the output contract.
 
@@ -128,8 +126,8 @@ Sage accepts these parameters in the prompt (with defaults):
 - Write `perspectives.md` with perspective breakdown and queries
 
 ### Phase 3: GATHER
-- Execute searches using WebSearch tool
-- For promising results, deep fetch using WebFetch
+- Execute searches using available Codex web/search tools
+- For promising results, deep fetch using available Codex fetch tools
 - Extract key learnings from each source
 - Track full source metadata: URL, title, author (if available), date accessed
 - Write findings to `sources.md` as you go — do not hold in memory
@@ -246,4 +244,5 @@ In chat, Sage outputs ONLY:
 - Source count and confidence level
 - File paths created/updated
 - Any blocking questions or clarifications needed
+'''
 

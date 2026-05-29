@@ -19,7 +19,7 @@ Do not use any non-Dreamers agent unless explicitly authorized by user.
 
 ## Subagent prompt — required content
 
-Every `multi_agent_v1.spawn_agent` invocation MUST include in the prompt:
+Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST include in the prompt:
 - **Context** — what this agent is being asked to do and why
 - **Prior work** — what was done previously, with absolute paths to any output files
 - **What is needed** — specific deliverable
@@ -28,7 +28,7 @@ Every `multi_agent_v1.spawn_agent` invocation MUST include in the prompt:
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when that result is needed before continuing.
+After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
 
 ## Continuation principle
 
@@ -40,7 +40,7 @@ At every natural pause between phases — where the skill has produced a meaning
 - **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md, CODEX.md, or .github/copilot-instructions.md when present` and fix errors before moving on.
+- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 
@@ -85,10 +85,10 @@ Extract only threads where `isResolved: false`. Capture each thread's `id`, `pat
 ## Step 3 — Decide accept / reject per thread (inline)
 
 **HARD STOP — fix application is inline.** The orchestrator (this skill) edits files directly using Edit / Write / Bash tools to apply accepted PR-feedback fixes. **Do NOT spawn any subagent to write the fix code.** Specifically:
-- ❌ `general-purpose` role prompt or other non-Dreamers delegation → FORBIDDEN. There is no general-purpose fallback for implementation.
-- ❌ `claude` or any other host-runtime role prompt → FORBIDDEN.
-- ❌ `forge` / `nova` / `bolt` as delegated role prompts → FORBIDDEN (these are not subagents in this system — see `dreamers-kernel.md` § "Subagent allowlist").
-- ✅ The only Dreamers role prompts you may spawn from this skill are `sentinel`, `probe`, and `hone` in Step 5 (parallel review of the applied fixes). Nothing else.
+- ❌ `general-purpose` or other non-Dreamers delegation → FORBIDDEN. There is no general-purpose fallback for implementation.
+- ❌ `claude` or any other host-runtime agent type → FORBIDDEN.
+- ❌ `forge` / `nova` / `bolt` as delegated agent types → FORBIDDEN for this skill (see `dreamers-kernel.md` § "Subagent allowlist").
+- ✅ The only Dreamers agent types you may spawn from this skill are `sentinel`, `probe`, and `hone` in Step 5 (parallel review of the applied fixes). Nothing else.
 
 For each unresolved thread, judge whether to accept or reject the comment. You are the implementation expert and have full authority. **Do not feel obligated to accept every comment** — if a suggestion conflicts with the plan, the architecture, or is simply wrong, reject it and say why.
 
@@ -123,11 +123,11 @@ Common prompt context for all three (subagent prompt rule — include verbatim):
 
 Per-reviewer prompt addition:
 
-**Sentinel** (`dreamers/agents/sentinel.md`) — correctness, security, maintainability lenses.
+**Sentinel** (`agent_type: sentinel`) — correctness, security, maintainability lenses.
 
-**Probe** (`dreamers/agents/probe.md`) — test coverage lens (did the PR-feedback fixes break or weaken test coverage?).
+**Probe** (`agent_type: probe`) — test coverage lens (did the PR-feedback fixes break or weaken test coverage?).
 
-**Hone** (`dreamers/agents/hone.md`) — simplicity lens (did the fixes introduce over-engineering or redundancy?).
+**Hone** (`agent_type: hone`) — simplicity lens (did the fixes introduce over-engineering or redundancy?).
 - **Mandate reinforcement (include in Hone's prompt verbatim):** "Aggressively flag bad architecture, over-engineering, redundancy, and simpler alternatives. Refactor cost is NOT a moderating factor — do not soften, hedge, or omit findings because the fix is big. When the suggested fix has architectural scope (touches files outside the PR-feedback surface, requires a new module, requires schema or symbol changes, or amounts to a full refactor of a subsystem), state the scope explicitly in the suggested-fix text. The orchestrator's major-refactor finding gate (per `dreamers-review.md`) routes those findings through the user for apply-now vs defer decisions. Your job is to surface; the gate handles disposition."
 
 Apply findings inline per `dreamers-review.md` § "Phase 2 — Apply findings":

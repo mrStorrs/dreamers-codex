@@ -4,6 +4,7 @@ Thumbs.db
 # Editor and local environment state
 .idea/
 .vscode/
+.tmp/
 *.swp
 *.swo
 *.tmp

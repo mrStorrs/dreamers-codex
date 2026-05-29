@@ -8,9 +8,11 @@ Use this reference when executing Dreamers skills that were converted from the C
 
 ## Resource Resolution
 Resolve Dreamers shared files in this order:
-1. Plugin-local files next to the skill: `../dreamers/refs`, `../dreamers/templates`, `../dreamers/agents`.
+1. Plugin-local files next to the skill: `../dreamers/refs`, `../dreamers/templates`.
 2. Direct-install files under `$CODEX_HOME/dreamers` or `~/.codex/dreamers`.
 3. Project-local compatibility files under `.github/dreamers` when working in a repository that still carries the Copilot layout.
+
+Dreamers role definitions are Codex agents. Resolve them from plugin-local `../agents/*.toml` or direct-install `$CODEX_HOME/agents/*.toml` / `~/.codex/agents/*.toml`. Do not deploy or resolve role definitions from `$CODEX_HOME/dreamers/agents`.
 
 Project instructions may live in `AGENTS.md`, `CODEX.md`, `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md`, or project-specific docs. Read whichever exist and let more local project instructions override general Dreamers defaults.
 
@@ -26,12 +28,12 @@ Project instructions may live in `AGENTS.md`, `CODEX.md`, `AGENTS.md`, `CODEX.md
 ## Delegation
 - Use `tool_search` to discover `multi_agent_v1` if multi-agent tools are not visible.
 - Use `multi_agent_v1.spawn_agent` only when the user invoked a Dreamers workflow that explicitly includes delegated reviewer, documentarian, or researcher roles, such as `dreamers-review`, `dreamers-docs`, `dreamers-research`, or `dreamers-full`.
-- Pass the relevant role prompt from `dreamers/agents/<role>.md` as the sub-agent task context.
+- Spawn by Codex `agent_type` using the Dreamers role name (`sentinel`, `probe`, `hone`, `echo`, `sage`, `forge`, or `nova`). Put the workflow-specific context in `message`; do not paste or load Markdown role prompt files.
 - If multi-agent tools are unavailable, run the requested lens inline and label the output with the role name.
 
 ## Tool Translation
 - Former `request_information`: ask the user in the conversation and wait.
-- Former `task()`: `multi_agent_v1.spawn_agent`, followed by `wait_agent` when the result is needed.
+- Former `task()`: `multi_agent_v1.spawn_agent` with `agent_type`, followed by `wait_agent` when the result is needed.
 - Former `view`: read the local file with available file tools.
 - Former `manage_todo_list`: `update_plan` in the parent conversation only.
 - Former Copilot global home `~/.copilot`: `$CODEX_HOME` when set, otherwise `~/.codex`.
