@@ -32,3 +32,7 @@ Mention the skill name in a Codex request:
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows.
 
 The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions.
+
+## Maintaining Dreamers
+
+Use `dreamers-update` for changes to Dreamers system files. The Copilot repo (`C:\projects\dreamers-copilot`) remains the upstream source of truth; the skill creates feature branches before edits, applies and validates the Copilot change first, transfers the equivalent Codex adaptation, then commits, pushes, and opens PRs for both repos.
