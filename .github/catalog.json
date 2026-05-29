@@ -104,20 +104,20 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-add-logging/SKILL.md"
+      "path": "skills/dreamers-add-logging/SKILL.md"
     },
     {
       "type": "skill",
       "slug": "dreamers-clean-work",
       "name": "dreamers-clean-work",
-      "description": "Between-milestone maintenance pass: prune stale files, archive merged plans, audit improvements.md, scan for project-state drift. All inline — no subagents.",
+      "description": "Between-milestone maintenance pass: prune stale files, archive legacy unarchived feature plan directories, audit improvements.md, scan for project-state drift. All inline — no subagents.",
       "author": "CJ Storrs",
       "tags": [
         "code",
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-clean-work/SKILL.md"
+      "path": "skills/dreamers-clean-work/SKILL.md"
     },
     {
       "type": "skill",
@@ -130,7 +130,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-cleanup-comments/SKILL.md"
+      "path": "skills/dreamers-cleanup-comments/SKILL.md"
     },
     {
       "type": "skill",
@@ -143,20 +143,20 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-cleanup-comments-branch/SKILL.md"
+      "path": "skills/dreamers-cleanup-comments-branch/SKILL.md"
     },
     {
       "type": "skill",
       "slug": "dreamers-docs",
       "name": "dreamers-docs",
-      "description": "Standalone docs-update entry point. Spawns Echo to update Echo-owned sections of `.github/copilot-instructions.md` plus other project docs (README, CHANGELOG, project-specific docs). Resolves diff scope via `--branch` (vs origin/<default>) or `--staged`. Echo stages edits; user commits after review. Does not push or open a PR.",
+      "description": "Standalone docs-update entry point. Spawns Echo to update Echo-owned sections of `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present plus other project docs (README, CHANGELOG, project-specific docs). Resolves diff scope via `--branch` (vs origin/<default>) or `--staged`. Echo stages edits; user commits after review. Does not push or open a PR.",
       "author": "CJ Storrs",
       "tags": [
         "code",
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-docs/SKILL.md"
+      "path": "skills/dreamers-docs/SKILL.md"
     },
     {
       "type": "skill",
@@ -169,7 +169,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-fix/SKILL.md"
+      "path": "skills/dreamers-fix/SKILL.md"
     },
     {
       "type": "skill",
@@ -182,7 +182,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-full/SKILL.md"
+      "path": "skills/dreamers-full/SKILL.md"
     },
     {
       "type": "skill",
@@ -195,7 +195,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-implement/SKILL.md"
+      "path": "skills/dreamers-implement/SKILL.md"
     },
     {
       "type": "skill",
@@ -208,7 +208,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-issue/SKILL.md"
+      "path": "skills/dreamers-issue/SKILL.md"
     },
     {
       "type": "skill",
@@ -221,7 +221,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-new-project/SKILL.md"
+      "path": "skills/dreamers-new-project/SKILL.md"
     },
     {
       "type": "skill",
@@ -234,7 +234,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-plan/SKILL.md"
+      "path": "skills/dreamers-plan/SKILL.md"
     },
     {
       "type": "skill",
@@ -247,7 +247,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-plan-verify/SKILL.md"
+      "path": "skills/dreamers-plan-verify/SKILL.md"
     },
     {
       "type": "skill",
@@ -260,7 +260,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-pr/SKILL.md"
+      "path": "skills/dreamers-pr/SKILL.md"
     },
     {
       "type": "skill",
@@ -273,7 +273,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-pr-resolve/SKILL.md"
+      "path": "skills/dreamers-pr-resolve/SKILL.md"
     },
     {
       "type": "skill",
@@ -286,7 +286,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-research/SKILL.md"
+      "path": "skills/dreamers-research/SKILL.md"
     },
     {
       "type": "skill",
@@ -299,7 +299,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-review/SKILL.md"
+      "path": "skills/dreamers-review/SKILL.md"
     },
     {
       "type": "skill",
@@ -312,7 +312,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-simplify/SKILL.md"
+      "path": "skills/dreamers-simplify/SKILL.md"
     },
     {
       "type": "skill",
@@ -325,7 +325,7 @@
         "dreamers",
         "skill"
       ],
-      "path": "skillsdreamers-test/SKILL.md"
+      "path": "skills/dreamers-test/SKILL.md"
     }
   ],
   "collections": [
@@ -333,9 +333,9 @@
       "type": "collection",
       "slug": "dreamers-system",
       "name": "Dreamers System",
-      "description": "Agent orchestration system for GitHub Copilot CLI. Pairs specialised reviewers (correctness/security, test coverage, simplicity) with an inline implementation orchestrator, a documentarian, and a researcher. Explicit user gates at every meaningful decision point: planning approval, ship strategy, major-refactor scope, user testing, close-out. The README at the readmePath has the full detail; what you gain in practice is a disciplined planning → tests-first → implementation → parallel-review → user-test → docs → PR flow you can re-run with confidence.",
+      "description": "Agent orchestration system for Codex. Pairs specialised reviewers (correctness/security, test coverage, simplicity) with an inline implementation orchestrator, a documentarian, and a researcher. Explicit user gates at every meaningful decision point: planning approval, ship strategy, major-refactor scope, user testing, close-out. The README at the readmePath has the full detail; what you gain in practice is a disciplined planning -> tests-first -> implementation -> parallel-review -> user-test -> docs -> PR flow you can re-run with confidence.",
       "author": "CJ Storrs",
-      "readmePath": ".github/README.md",
+      "readmePath": "README.md",
       "tags": [
         "code",
         "dreamers",
@@ -481,9 +481,8 @@
       "slug": "instructions",
       "name": "Instructions",
       "description": "Shared instruction files (e.g. comment rules) consumed by Dreamers agents and skills.",
-      "sourcePath": ".github/instructions",
-      "destSubpath": "instructions"
+      "sourcePath": "dreamers/instructions",
+      "destSubpath": "dreamers/instructions"
     }
   ]
 }
-

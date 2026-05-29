@@ -177,6 +177,38 @@ foreach ($file in @(
     catch { Add-Error "Invalid JSON: $file ($($_.Exception.Message))" }
 }
 
+$catalogPath = Join-Path $Root ".github\catalog.json"
+if (Test-Path $catalogPath) {
+    try {
+        $catalog = Get-Content -Raw $catalogPath | ConvertFrom-Json
+        foreach ($item in $catalog.items) {
+            if (-not $item.path) { continue }
+            if ($item.path -match "^skillsdreamers-" -or $item.path -match "^\.github/(agents|skills|dreamers|instructions)/") {
+                Add-Error "Catalog path is not Codex-layout: $($item.path)"
+                continue
+            }
+            $itemPath = Join-Path $Root ($item.path -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+            if (-not (Test-Path $itemPath)) { Add-Error "Catalog item path does not exist: $($item.path)" }
+        }
+        foreach ($collection in $catalog.collections) {
+            if (-not $collection.readmePath) { continue }
+            $readmePath = Join-Path $Root ($collection.readmePath -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+            if (-not (Test-Path $readmePath)) { Add-Error "Catalog readmePath does not exist: $($collection.readmePath)" }
+        }
+        foreach ($folder in $catalog.folderTargets) {
+            if ($folder.sourcePath -match "^\.github/(agents|skills|dreamers|instructions)") {
+                Add-Error "Catalog folder sourcePath is not Codex-layout: $($folder.sourcePath)"
+                continue
+            }
+            $sourcePath = Join-Path $Root ($folder.sourcePath -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+            if (-not (Test-Path $sourcePath)) { Add-Error "Catalog folder sourcePath does not exist: $($folder.sourcePath)" }
+        }
+    }
+    catch {
+        Add-Error "Unable to validate catalog paths: $($_.Exception.Message)"
+    }
+}
+
 $scanRoots = @("agents", "skills", "dreamers", "README.md", "Install-DreamersCodex.ps1", "Remove-DreamersCodex.ps1", ".github/catalog.json") |
     ForEach-Object { Join-Path $Root $_ } |
     Where-Object { Test-Path $_ }
@@ -209,6 +241,7 @@ $stalePatterns = @(
 foreach ($file in $scanFiles) {
     $rel = Get-RelativePath $file.FullName
     if ($rel -eq "dreamers/refs/codex-runtime.md") { continue }
+    if ($rel -eq "skills/dreamers-update/SKILL.md") { continue }
     $content = Get-Content -Raw $file.FullName
     foreach ($pattern in $stalePatterns) {
         if ($content -cmatch $pattern) {
