@@ -25,7 +25,7 @@ By default the installer targets `$env:CODEX_HOME` when set, otherwise `~/.codex
 
 Mention the skill name in a Codex request:
 
-- `dreamers-plan` for planning only.
+- `dreamers-plan` for interactive planning with proposal review before approval.
 - `dreamers-implement` for one approved plan.
 - `dreamers-review` for the Sentinel + Probe + Hone review lenses.
 - `dreamers-full` for the complete pipeline.
