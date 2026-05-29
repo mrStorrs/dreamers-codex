@@ -1,0 +1,26 @@
+.DS_Store
+Thumbs.db
+
+# Editor and local environment state
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+*.log
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Build and package outputs
+node_modules/
+dist/
+build/
+out/
+coverage/
+
+# PowerShell artifacts
+*.ps1xml
+*.psd1.bak
