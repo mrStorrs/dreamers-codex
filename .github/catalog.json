@@ -266,7 +266,7 @@
       "type": "skill",
       "slug": "dreamers-pr-resolve",
       "name": "dreamers-pr-resolve",
-      "description": "Resolve unresolved PR review comments inline. Orchestrator decides accept/reject per thread, applies fixes, spawns Sentinel + Probe + Hone in parallel for review of accepted changes, then resolves accepted threads via `gh api`.",
+      "description": "Resolve unresolved PR review comments inline. Orchestrator decides accept/reject per thread, applies fixes, runs required Sentinel review of accepted changes, adds Probe/Hone only when situationally needed, then resolves accepted threads via `gh api`.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -292,7 +292,7 @@
       "type": "skill",
       "slug": "dreamers-review",
       "name": "dreamers-review",
-      "description": "Review skill — spawns Sentinel + Probe + Hone in parallel and reports their structured findings. Read-only; does NOT apply fixes (the caller decides). --lens flag spawns a single reviewer for ad-hoc audits.",
+      "description": "Review skill — spawns Sentinel / Probe / Hone in the selected lane and reports structured findings. Read-only; does NOT apply fixes (the caller decides). Supports full triad, selected-lens subsets, and single-lens audits.",
       "author": "CJ Storrs",
       "tags": [
         "code",

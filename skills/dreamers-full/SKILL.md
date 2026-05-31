@@ -1,6 +1,6 @@
 ---
 name: dreamers-full
-description: "End-to-end Dreamers Codex pipeline. Invokes dreamers-plan, halts for plan review / implementation start, implements each plan inline (writes tests + code + runs tests), invokes dreamers-review for findings, applies findings inline with the major-refactor gate, halts for templated user testing when triggered, then close-out (inline + dreamers-docs + pre-PR approval + dreamers-pr). Use when the user asks for dreamers-full, full pipeline, plan and implement, new feature, ship a feature."
+description: "End-to-end Dreamers Codex pipeline. Invokes dreamers-plan, halts for plan review / implementation start, implements each plan inline (writes tests + code + runs tests), invokes dreamers-review with the narrowest required review lane, applies findings inline with the major-refactor gate, halts for templated user testing when triggered, then close-out (inline + dreamers-docs + pre-PR approval + dreamers-pr). Use when the user asks for dreamers-full, full pipeline, plan and implement, new feature, ship a feature."
 ---
 
 ## Codex runtime
@@ -48,13 +48,14 @@ For each plan in sequence:
 - Update `./test-benchmarks.md` row after passing (if the project uses one).
 
 ### Step 4 — Spawn review
-- Invoke `dreamers-review`. Wait. It returns the triad's structured findings (per `reviewer-findings-format`, Kernel) — read-only.
+- Invoke `dreamers-review --branch` once per plan. This is the `full` lane: Sentinel + Probe + Hone with no lens flags.
+- Wait. It returns the full triad's structured findings (per `reviewer-findings-format`, Kernel) — read-only.
 - `Blocked` from any reviewer → halt cycle + surface verbatim.
 - Open questions from any reviewer → present each by asking the user; capture; carry decisions into Step 5.
 
 ### Step 5 — Apply findings (orchestrator-as-fixer)
-- Concatenate findings from all three reviewers; sort by severity (critical → low).
-- Conflict resolution: same `file:line` with contradicting fixes → correctness > simplicity. Genuine ambiguity → ask the user before applying.
+- Concatenate findings from the spawned reviewers; sort by severity (critical → low).
+- Conflict resolution: same `file:line` with contradicting fixes → correctness/security > test-coverage > simplicity. Genuine ambiguity → ask the user before applying.
 - **Major-refactor gate.** A finding is "major-refactor scope" if its suggested fix meets ANY of:
   - New module or top-level directory not in the plan's scope.
   - Schema / data-model change.
@@ -76,7 +77,7 @@ For each plan in sequence:
 - The gate prompt must include a numbered `Testing steps` section and a `Notes` section.
 - The gate must provide exactly three options: `Approved` / `Bug found (enter text)` / `Other (enter text)`.
 - `Bug found (enter text)` and `Other (enter text)` must accept freeform text.
-- On bug → capture text, fix inline, rerun required automated validation, then re-present the same templated gate.
+- On bug → capture text, fix inline, rerun required automated validation, then decide whether a reviewer re-run is needed. Do not re-run the full triad by default after user-testing bug fixes. If the fix is small and validation covers it, skip reviewer re-run and record why. Otherwise choose the narrowest follow-up `dreamers-review` lane: Sentinel by default, Probe for coverage/regression-risk changes, Hone for architecture/refactor changes, full only if a new full-lane trigger appears. Then re-present the same templated gate.
 - On Approved → continue.
 - No commit yet (commit happens at close-out for FULL, or in the LIGHT close-out between cycles for INCREMENTAL).
 

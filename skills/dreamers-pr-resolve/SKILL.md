@@ -1,12 +1,12 @@
 ---
 name: dreamers-pr-resolve
-description: "Resolve unresolved PR review comments inline. Orchestrator decides accept/reject per thread, applies fixes, spawns Sentinel + Probe + Hone in parallel for review of accepted changes, then resolves accepted threads via `gh api`. Use when the user asks for dreamers-pr-resolve, resolve PR comments, address review comments, fix PR feedback."
+description: "Resolve unresolved PR review comments inline. Orchestrator decides accept/reject per thread, applies fixes, runs required Sentinel review of accepted changes, adds Probe/Hone only when situationally needed, then resolves accepted threads via `gh api`. Use when the user asks for dreamers-pr-resolve, resolve PR comments, address review comments, fix PR feedback."
 ---
 
 ## Codex runtime
 Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
 
-Resolve unresolved PR review comments. All work inline except a parallel review pass (Sentinel + Probe + Hone) over the accepted changes.
+Resolve unresolved PR review comments. All work inline except required Sentinel review over accepted changes; add Probe/Hone only when situationally needed.
 
 Follow the Dreamers Kernel and output discipline from `Codex global instructions, if configured`.
 
@@ -57,7 +57,7 @@ At skill entry, declare via `update_plan`:
 - [ ] Read review comments (discover PR + pull unresolved threads via GraphQL)
 - [ ] Categorize threads (accept/reject decision per thread)
 - [ ] Apply accepted fixes inline + run tests
-- [ ] Spawn parallel review of accepted changes (Sentinel + Probe + Hone)
+- [ ] Spawn Sentinel review of accepted changes; add Probe/Hone only when situationally required
 - [ ] Resolve accepted threads + commit + report
 
 Mark each item `in_progress` when starting, `completed` when done. Never batch completions at the end.
@@ -84,7 +84,7 @@ Extract only threads where `isResolved: false`. Capture each thread's `id`, `pat
 - ❌ `general-purpose` or other non-Dreamers delegation → FORBIDDEN. There is no general-purpose fallback for implementation.
 - ❌ `claude` or any other host-runtime agent type → FORBIDDEN.
 - ❌ `forge` / `nova` / `bolt` as delegated agent types → FORBIDDEN for this skill (see `dreamers-kernel.md` § "Subagent allowlist").
-- ✅ The only Dreamers agent types you may spawn from this skill are `sentinel`, `probe`, and `hone` in Step 5 (parallel review of the applied fixes). Nothing else.
+- ✅ The only Dreamers agent types you may spawn from this skill are `sentinel`, `probe`, and `hone` in Step 5 (selected-lane review of the applied fixes). Nothing else.
 
 For each unresolved thread, judge whether to accept or reject the comment. You are the implementation expert and have full authority. **Do not feel obligated to accept every comment** — if a suggestion conflicts with the plan, the architecture, or is simply wrong, reject it and say why.
 
@@ -106,12 +106,20 @@ If any threads were accepted:
 
 If no threads were accepted, skip to Step 6.
 
-## Step 5 — Parallel review of accepted changes (Sentinel + Probe + Hone)
+## Step 5 — Sentinel review of accepted changes
 
-Spawn **three reviewers in parallel** in a single batched tool call (whatever the runtime surfaces for parallel agent spawning). All three are read-only / report-only; each returns structured findings in the format from `reviewer-findings-format.md`. Scope is restricted to ONLY the files touched by accepted threads.
+Run Sentinel for accepted PR-feedback fixes. This pass stays light because Probe and Hone already ran during the main pipeline review. Scope is restricted to ONLY the files touched by accepted threads.
 
-Common prompt context for all three (subagent prompt rule — include verbatim):
-- **Todo discipline:** "Do NOT call `update_plan`. The orchestrator owns the todo." (per `dreamers-kernel.md` § "Single-owner todo")
+Use `multi_agent_v1.spawn_agent` for the required Sentinel review.
+
+Add Probe only when accepted fixes changed tests, test harnesses, AC-covered behavior, validation logic, regression-sensitive behavior, or user/reviewer feedback asks for a coverage audit.
+
+Add Hone only when accepted fixes introduce or reshape abstractions, module boundaries, public APIs, schemas, data models, persistence, dependencies, or broad refactors.
+
+If Probe or Hone is added, spawn all selected reviewers in parallel. All reviewers are read-only / report-only; each returns structured findings in the format from `reviewer-findings-format.md`.
+
+Common prompt context for each selected reviewer (subagent prompt rule — include verbatim):
+- **Todo discipline:** "Do NOT call `update_plan`. The orchestrator owns the todo."
 - Plan file: none (ad-hoc PR-feedback work, no plan binding) — mark plan-alignment summary as N/A
 - Scope: list of files changed by accepted threads from `git status`
 - Branch + default branch names
@@ -119,17 +127,17 @@ Common prompt context for all three (subagent prompt rule — include verbatim):
 
 Per-reviewer prompt addition:
 
-**Sentinel** (`agent_type: sentinel`) — correctness, security, maintainability lenses.
+**Sentinel** — correctness, security, maintainability lenses.
 
-**Probe** (`agent_type: probe`) — test coverage lens (did the PR-feedback fixes break or weaken test coverage?).
+**Probe** — test coverage lens (did the PR-feedback fixes break or weaken test coverage?).
 
-**Hone** (`agent_type: hone`) — simplicity lens (did the fixes introduce over-engineering or redundancy?).
+**Hone** — simplicity lens (did the fixes introduce over-engineering or redundancy?).
 - **Mandate reinforcement (include in Hone's prompt verbatim):** "Aggressively flag bad architecture, over-engineering, redundancy, and simpler alternatives. Refactor cost is NOT a moderating factor — do not soften, hedge, or omit findings because the fix is big. When the suggested fix has architectural scope (touches files outside the PR-feedback surface, requires a new module, requires schema or symbol changes, or amounts to a full refactor of a subsystem), state the scope explicitly in the suggested-fix text. The orchestrator's major-refactor finding gate (per `dreamers-review.md`) routes those findings through the user for apply-now vs defer decisions. Your job is to surface; the gate handles disposition."
 
-Apply findings inline per `dreamers-review.md` § "Phase 2 — Apply findings":
+Apply findings inline per the full-pipeline apply-findings rules:
 
 1. Sort findings by severity.
-2. Resolve conflicts per the rule (correctness > simplicity).
+2. Resolve conflicts per the rule (correctness/security > test-coverage > simplicity).
 3. **Evaluate each finding against the Major-refactor finding gate** per `dreamers-review.md` § "Major-refactor finding gate." If ANY criterion fires for a finding (new module / schema change / cross-cutting refactor / new exported symbols / files outside the PR-feedback surface / Hone-style "tear out X" scope language), ask the user with the 3-choice template (`Apply now — refactor in this cycle` / `Defer — create follow-up plan` / `Other`) and route per the user's answer. On `Defer`, create the stub plan file per the canonical template; do NOT apply the deferred fix.
 4. Apply each (non-deferred) fix inline; stage with `git add`.
 5. Re-run type-check + tests; fix regressions inline (up to 3 attempts).
@@ -137,7 +145,7 @@ Apply findings inline per `dreamers-review.md` § "Phase 2 — Apply findings":
 Handle non-finding outputs:
 - Any reviewer returns `Blocked` → halt; surface; resolve; re-spawn that reviewer.
 - Open questions → present to user before proceeding.
-- All three `Approved — no findings` → proceed to Step 6 directly.
+- All spawned reviewers return `Approved — no findings` → proceed to Step 6 directly.
 
 ## Step 6 — Commit accepted fixes (if any)
 
@@ -171,6 +179,6 @@ Report to the user:
 - M comments rejected (with one-line path + rejection rationale per reject)
 - Threads remaining open (the M rejected ones)
 - Commit hash + push status
-- Reviewer results (Sentinel + Probe + Hone)
+- Reviewer results (selected lane)
 
 This skill does NOT update the PR description, does NOT re-request review, does NOT close the PR. Those are user actions.
