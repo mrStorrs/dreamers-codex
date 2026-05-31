@@ -1,6 +1,6 @@
 ---
 name: dreamers-full
-description: "End-to-end Dreamers Codex pipeline. Invokes dreamers-plan, halts for plan review / implementation start, implements each plan inline (writes tests + code + runs tests), invokes dreamers-review for findings, applies findings inline with the major-refactor gate, halts for user testing when triggered, then close-out (inline + dreamers-docs + pre-PR approval + dreamers-pr). Use when the user asks for dreamers-full, full pipeline, plan and implement, new feature, ship a feature."
+description: "End-to-end Dreamers Codex pipeline. Invokes dreamers-plan, halts for plan review / implementation start, implements each plan inline (writes tests + code + runs tests), invokes dreamers-review for findings, applies findings inline with the major-refactor gate, halts for templated user testing when triggered, then close-out (inline + dreamers-docs + pre-PR approval + dreamers-pr). Use when the user asks for dreamers-full, full pipeline, plan and implement, new feature, ship a feature."
 ---
 
 ## Codex runtime
@@ -72,14 +72,11 @@ For each plan in sequence:
 ### Step 6 — User testing gate (when triggered)
 - Trigger this gate when the plan requires manual verification, the change is user-facing, build/distribution steps are needed, reviewer findings request user validation, or the user asked to test this area.
 - If no trigger applies, record "user testing skipped — no manual verification trigger" in the cycle summary and continue.
-- When triggered, ask the user with:
-  - Plan ID + path
-  - Summary of what changed in this cycle
-  - Build/distribute steps from project instructions when present (or ask user to build if absent)
-  - Step-by-step verify steps derived from plan ACs
-  - Known limitations / out-of-scope
-  - Options: `Approved — continue` / `Bug: <description>` / `Other`
-- On bug → fix inline + re-prompt.
+- When triggered, read `dreamers/templates/user-testing-gate.md` and present the gate exactly as specified there.
+- The gate prompt must include a numbered `Testing steps` section and a `Notes` section.
+- The gate must provide exactly three options: `Approved` / `Bug found (enter text)` / `Other (enter text)`.
+- `Bug found (enter text)` and `Other (enter text)` must accept freeform text.
+- On bug → capture text, fix inline, rerun required automated validation, then re-present the same templated gate.
 - On Approved → continue.
 - No commit yet (commit happens at close-out for FULL, or in the LIGHT close-out between cycles for INCREMENTAL).
 
