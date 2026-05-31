@@ -36,7 +36,7 @@ flowchart TD
     S3Check -->|No| HaltC(["Halt + surface"])
     S3Check -->|Yes| S4
 
-    S4["Step 4<br/>Invoke dreamers-review"] --> ReviewResult{"Review result"}
+    S4["Step 4<br/>Invoke dreamers-review --branch<br/>full lane once per plan"] --> ReviewResult{"Review result"}
     ReviewResult -->|Blocked| HaltD(["Halt + surface"])
     ReviewResult -->|Findings| S5
 
@@ -102,7 +102,9 @@ flowchart TD
 
 ## Key invariants
 
+- Step 4 always runs one full `dreamers-review --branch` per plan before PR-bearing code ships.
 - Step 6 (user-testing gate) fires only when manual verification, user-facing behavior, build/distribution, reviewer feedback, or user request triggers it. It uses `dreamers/templates/user-testing-gate.md`: numbered testing steps, notes, and exactly `Approved` / `Bug found (enter text)` / `Other (enter text)`.
+- User-testing bug fixes do not force another full triad by default. Small covered fixes may skip reviewer re-run; otherwise use the narrowest follow-up lane from `dreamers-review`.
 - `dreamers-review` is **report-only** — Step 5 (apply findings + major-refactor gate) lives in this skill, not in `dreamers-review`.
 - Gates are declared inline at the phase or step where they happen.
 - INCREMENTAL ships a PR per plan after an explicit pre-PR approval gate, then halts until the user confirms merge. ATOMIC accumulates commits and ships one PR at Phase 3.

@@ -27,7 +27,7 @@ Mention the skill name in a Codex request:
 
 - `dreamers-plan` for interactive planning with proposal review before approval.
 - `dreamers-implement` for one approved plan.
-- `dreamers-review` for the Sentinel + Probe + Hone review lenses.
+- `dreamers-review` for full-triad, selected-lens, or single-lens review lanes.
 - `dreamers-full` for the complete pipeline, with gates inline at plan approval, implementation start, templated user testing when triggered, and final pre-PR approval.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows.
 

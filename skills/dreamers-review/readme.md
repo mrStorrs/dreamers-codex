@@ -1,17 +1,19 @@
 # dreamers-review — flow
 
-Visual map of the parallel-triad review skill. Source of truth is `SKILL.md`. **Read-only** — does NOT apply fixes; the caller does.
+Visual map of the selected-lane review skill. Source of truth is `SKILL.md`. **Read-only** — does NOT apply fixes; the caller does.
 
 ```mermaid
 flowchart TD
-    Start(["dreamers-review the skill input"]) --> ModeCheck{"--lens flag?"}
+    Start(["dreamers-review the skill input"]) --> ModeCheck{"review flags?"}
 
-    ModeCheck -->|No flag| Triad["Triad mode:<br/>Sentinel + Probe + Hone<br/>in one batched multi_agent_v1.spawn_agent call"]
+    ModeCheck -->|No flag| Triad["Full triad:<br/>Sentinel + Probe + Hone<br/>with parallel spawn_agent calls"]
+    ModeCheck -->|--lenses csv| Selected["Selected subset:<br/>any non-empty mix<br/>of Sentinel / Probe / Hone"]
     ModeCheck -->|--lens sentinel| LensS["Single-lens: Sentinel"]
     ModeCheck -->|--lens probe| LensP["Single-lens: Probe"]
     ModeCheck -->|--lens hone| LensH["Single-lens: Hone"]
 
     Triad --> Spawn["wait_agent<br/>each prompt MUST include<br/>Do NOT call update_plan"]
+    Selected --> Spawn
     LensS --> Spawn
     LensP --> Spawn
     LensH --> Spawn
@@ -34,7 +36,7 @@ flowchart TD
     classDef agent fill:#7c3aed,stroke:#6d28d9,stroke-width:2px,color:#fff
 
     class ModeCheck,CheckStatus gate
-    class Triad,LensS,LensP,LensH agent
+    class Triad,Selected,LensS,LensP,LensH agent
     class Spawn,Wait,Collect,Aggregate,Surface1,Surface2,Report phase
 ```
 
@@ -46,11 +48,20 @@ flowchart TD
 | Test coverage (AC matrix, layer audit, gaps) | Probe | Findings + AC coverage table |
 | Simplicity / over-engineering / architecture | Hone | Findings (incl. full-refactor recommendations) |
 
+## Lane policy
+
+| Lane | Reviewers | Normal use |
+|---|---|---|
+| `sentinel` | Sentinel | Focused correctness/security/maintainability audit. |
+| `probe` | Probe | Focused test coverage or regression-risk audit. |
+| `hone` | Hone | Focused architecture/simplicity audit. |
+| `standard` | Sentinel + Probe | Follow-up check when both correctness and coverage need review but Hone is not warranted. |
+| `full` | Sentinel + Probe + Hone | Required once per `dreamers-full` plan; invoke with no lens flag. Also use for architecture/refactor risk or explicit full-review request. |
+
 ## Key invariants
 
 - **Read-only.** This skill does NOT apply fixes. The caller (`dreamers-full` Step 5, or whoever invoked it) decides what to do with the findings.
 - **No major-refactor gate here.** That logic lives in the caller. This skill just reports.
 - **All reviewer prompts MUST include** `Do NOT call update_plan.`
 - **`--no-apply` doesn't exist anymore** — this skill is always read-only by design.
-
 
