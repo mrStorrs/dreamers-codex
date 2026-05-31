@@ -25,7 +25,7 @@ By default the installer targets `$env:CODEX_HOME` when set, otherwise `~/.codex
 
 Mention the skill name in a Codex request:
 
-- `dreamers-plan` for interactive planning with proposal review before approval.
+- `dreamers-plan` for interactive planning with proposal review before approval and written-plan coverage review before the review gate.
 - `dreamers-implement` for one approved plan.
 - `dreamers-review` for full-triad, selected-lens, or single-lens review lanes.
 - `dreamers-full` for the complete pipeline, with gates inline at plan approval, implementation start, templated user testing when triggered, and final pre-PR approval.
