@@ -28,7 +28,7 @@ Mention the skill name in a Codex request:
 - `dreamers-plan` for interactive planning with proposal review before approval.
 - `dreamers-implement` for one approved plan.
 - `dreamers-review` for the Sentinel + Probe + Hone review lenses.
-- `dreamers-full` for the complete pipeline.
+- `dreamers-full` for the complete pipeline, with gates inline at plan approval, implementation start, triggered user testing, and final pre-PR approval.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows.
 
 The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions.

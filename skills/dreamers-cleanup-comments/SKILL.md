@@ -55,10 +55,6 @@ Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST 
 
 After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
 
-## Continuation principle
-
-At every natural pause between phases — where the skill has produced a meaningful result and the user could redirect — ask the user with three choices: `Continue` / `Halt for now` / `Other` (freeform). Never silently advance; never silently stop. On `Halt`, emit a one-line resume command and stop.
-
 ## Implementation discipline
 
 - **Plan adherence:** edit only files in the plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
