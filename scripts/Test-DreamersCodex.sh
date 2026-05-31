@@ -5,8 +5,8 @@ usage() {
   cat <<'EOF'
 Usage: Test-DreamersCodex.sh [--root <path>]
 
-Validates the Codex package layout, catalog paths, JSON files, frontmatter,
-and stale Copilot/runtime tokens using Bash + Python.
+Validates inlined refs, Codex package layout, catalog paths, JSON files,
+frontmatter, and stale Copilot/runtime tokens using Bash + Python.
 EOF
 }
 
@@ -30,6 +30,8 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+"$script_dir/sync-refs.sh" -Verify
 
 python3 - "$root" <<'PY'
 from pathlib import Path
