@@ -105,6 +105,7 @@ expected_templates = [
     "project-brief.md",
     "shell-plan.md",
     "test-benchmarks.md",
+    "user-testing-gate.md",
 ]
 expected_instructions = [
     "comment-rules.instructions.md",

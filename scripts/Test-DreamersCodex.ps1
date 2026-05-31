@@ -77,7 +77,8 @@ $expectedTemplates = @(
     "pr-description.md",
     "project-brief.md",
     "shell-plan.md",
-    "test-benchmarks.md"
+    "test-benchmarks.md",
+    "user-testing-gate.md"
 )
 $expectedInstructions = @(
     "comment-rules.instructions.md",
