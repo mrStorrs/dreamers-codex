@@ -12,6 +12,10 @@ Follow the Dreamers Kernel and output discipline from `Codex global instructions
 
 If no task description was provided, halt + ask by asking the user.
 
+## User overrides
+
+- Explicit user instructions can skip or alter phases/actions.
+
 ## Repository roles
 
 - **Dreamers Copilot = upstream source of truth.** Default path: `C:\projects\dreamers-copilot`. This is the Copilot CLI version and owns the canonical behavior, wording, refs, templates, agents, skills, READMEs, and catalog.

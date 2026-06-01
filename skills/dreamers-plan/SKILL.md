@@ -45,6 +45,10 @@ Template read at runtime by reading the local file:
 <dreamers-kernel>
 # Dreamers Kernel
 
+## User overrides
+
+Explicit user instructions can skip or alter phases/actions.
+
 ## Subagent allowlist (HARD RULE)
 
 Do not use any non-Dreamers agent unless explicitly authorized by user.

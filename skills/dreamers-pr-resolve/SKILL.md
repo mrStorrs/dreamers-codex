@@ -13,6 +13,10 @@ Follow the Dreamers Kernel and output discipline from `Codex global instructions
 <dreamers-kernel>
 # Dreamers Kernel
 
+## User overrides
+
+Explicit user instructions can skip or alter phases/actions.
+
 ## Subagent allowlist (HARD RULE)
 
 Do not use any non-Dreamers agent unless explicitly authorized by user.

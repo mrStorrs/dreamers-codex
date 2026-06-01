@@ -10,6 +10,10 @@ Bootstrap a brand new project from scratch. Work through the phases in order. Do
 
 Follow the Dreamers Kernel and output discipline from `Codex global instructions, if configured`.
 
+## User overrides
+
+- Explicit user instructions can skip or alter phases/actions.
+
 <project-bootstrap>
 # Project Bootstrap
 

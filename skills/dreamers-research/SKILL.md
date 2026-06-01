@@ -12,6 +12,10 @@ Skill input: use the user's message, including any paths or flags.
 
 ---
 
+## User overrides
+
+- Explicit user instructions can skip or alter phases/actions.
+
 ## Todo list
 
 At skill entry, declare via `update_plan`:
