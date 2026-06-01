@@ -23,6 +23,8 @@ By default the installer targets `$env:CODEX_HOME` when set, otherwise `~/.codex
 
 ## Use
 
+Explicit user instructions can skip or alter skill phases/actions.
+
 Mention the skill name in a Codex request:
 
 - `dreamers-plan` for interactive planning with proposal review before approval and written-plan coverage review before the review gate.
