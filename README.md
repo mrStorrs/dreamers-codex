@@ -1,6 +1,6 @@
 # Dreamers Codex
 
-Dreamers Codex is a Codex-native conversion of the Dreamers orchestration package. It keeps the original planning -> tests-first implementation -> artifact-backed review -> docs -> PR flow, but exposes it as Codex skills instead of slash commands.
+Dreamers Codex is a Codex-native conversion of the Dreamers orchestration package. It keeps the original planning -> tests-first implementation -> full review -> Vigil follow-up review -> docs -> PR flow, but exposes it as Codex skills instead of slash commands.
 
 ## Layout
 
@@ -38,11 +38,11 @@ Mention the skill name in a Codex request:
 - `dreamers-plan` for interactive planning with proposal review before approval and written-plan coverage review before the review gate.
 - `dreamers-implement` for one approved plan.
 - `dreamers-review` for artifact-backed full-triad, selected-lens, or single-lens review lanes.
-- `dreamers-full` for the complete pipeline, with gates inline at plan approval, implementation start, templated user testing when triggered, and final pre-PR approval.
+- `dreamers-full` for the complete pipeline, with one automatic triad review per plan, Vigil follow-up review reruns by default, user-gated extra triad/selected-lane reruns for major changes, and gates inline at plan approval, implementation start, templated user testing when triggered, and final pre-PR approval.
 - `dreamers-lite` for a lean pipeline with one compact plan approval, Vigil artifact review, docs, and PR.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows.
 
-The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions. Sentinel, Probe, Hone, and Vigil write durable `.dreamers/reviews/` artifacts; orchestrators read those artifacts before reporting or applying findings.
+The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions. Sentinel, Probe, Hone, and Vigil write durable `.dreamers/reviews/` artifacts; orchestrators read those artifacts before reporting or applying findings. `dreamers-full` runs Sentinel, Probe, and Hone once per plan, then uses Vigil for normal review reruns unless a major-change gate asks the user and the user chooses another lane.
 
 ## Validation
 
