@@ -105,6 +105,6 @@ flowchart TD
 - Step 4 always runs one full `dreamers-review --branch` per plan before PR-bearing code ships.
 - Step 6 (user-testing gate) fires only when manual verification, user-facing behavior, build/distribution, reviewer feedback, or user request triggers it. It uses `dreamers/templates/user-testing-gate.md`: numbered testing steps, notes, and exactly `Approved` / `Bug found (enter text)` / `Other (enter text)`.
 - User-testing bug fixes do not force another full triad by default. Small covered fixes may skip reviewer re-run; otherwise use the narrowest follow-up lane from `dreamers-review`.
-- `dreamers-review` is **report-only** — Step 5 (apply findings + major-refactor gate) lives in this skill, not in `dreamers-review`.
+- `dreamers-review` is **report-only** and artifact-backed — it reads reviewer `.dreamers/reviews/` artifacts before returning findings. Step 5 (apply findings + major-refactor gate) lives in this skill, not in `dreamers-review`.
 - Gates are declared inline at the phase or step where they happen.
 - INCREMENTAL ships a PR per plan after an explicit pre-PR approval gate, then halts until the user confirms merge. ATOMIC accumulates commits and ships one PR at Phase 3.

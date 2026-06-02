@@ -127,10 +127,9 @@ Run the project's type-check command after edits (comments don't usually affect 
 
 Ask the user with `["Yes — review before commit", "No — skip review", "Other"]`. Sentinel's maintainability lens catches anything the cleanup missed or newly-introduced ambiguity.
 
-- Yes → spawn a sub-agent with `agent_type: sentinel` and changed-files scope. Apply findings inline.
+- Yes → spawn a sub-agent with `agent_type: sentinel` and changed-files scope. Require one `.dreamers/reviews/sentinel-*.md` artifact and read it before applying findings inline.
 - No → proceed to commit.
 
 ## Phase 5 — Commit
 
 `git status` to confirm staged content. Commit message: `chore: comment cleanup per comment-rules.md`. Do NOT push.
-
