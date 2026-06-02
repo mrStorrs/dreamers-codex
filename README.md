@@ -1,6 +1,6 @@
 # Dreamers Codex
 
-Dreamers Codex is a Codex-native conversion of the Dreamers orchestration package. It keeps the original planning -> tests-first implementation -> review -> docs -> PR flow, but exposes it as Codex skills instead of slash commands.
+Dreamers Codex is a Codex-native conversion of the Dreamers orchestration package. It keeps the original planning -> tests-first implementation -> artifact-backed review -> docs -> PR flow, but exposes it as Codex skills instead of slash commands.
 
 ## Layout
 
@@ -15,11 +15,19 @@ dreamers/instructions/*.md     # compatibility instruction files
 
 ## Install For Direct Skill Discovery
 
+Linux:
+
+```bash
+./Install-DreamersCodex.sh
+```
+
+Windows:
+
 ```powershell
 .\Install-DreamersCodex.ps1
 ```
 
-By default the installer targets `$env:CODEX_HOME` when set, otherwise `~/.codex`. It copies Codex agent definitions to `agents/`, skills to `skills/`, and shared Dreamers refs/templates/instructions to `dreamers/` under that home. It also removes the legacy deployed `dreamers/agents/` prompt copies from earlier conversions. Use `-Force` to overwrite existing Dreamers files.
+By default the installer targets `CODEX_HOME` when set, otherwise `~/.codex`. It copies Codex agent definitions to `agents/`, skills to `skills/`, and shared Dreamers refs/templates/instructions to `dreamers/` under that home. It also removes the legacy deployed `dreamers/agents/` prompt copies from earlier conversions. Use `--force` in bash or `-Force` in PowerShell to overwrite existing Dreamers files.
 
 ## Use
 
@@ -29,12 +37,12 @@ Mention the skill name in a Codex request:
 
 - `dreamers-plan` for interactive planning with proposal review before approval and written-plan coverage review before the review gate.
 - `dreamers-implement` for one approved plan.
-- `dreamers-review` for full-triad, selected-lens, or single-lens review lanes.
+- `dreamers-review` for artifact-backed full-triad, selected-lens, or single-lens review lanes.
 - `dreamers-full` for the complete pipeline, with gates inline at plan approval, implementation start, templated user testing when triggered, and final pre-PR approval.
 - `dreamers-lite` for a lean pipeline with one compact plan approval, Vigil artifact review, docs, and PR.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows.
 
-The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions.
+The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions. Sentinel, Probe, Hone, and Vigil write durable `.dreamers/reviews/` artifacts; orchestrators read those artifacts before reporting or applying findings.
 
 ## Validation
 

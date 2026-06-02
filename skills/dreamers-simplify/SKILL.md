@@ -1,6 +1,6 @@
 ---
 name: dreamers-simplify
-description: "Standalone Hone review (architectural quality). Read-only — returns structured findings on over-engineering, premature abstractions, redundancy, and bad architecture. May recommend full refactors. No auto-fix. Use when the user asks for dreamers-simplify, simplify this, audit for over-engineering, architectural review."
+description: "Standalone Hone review (architectural quality). Read-only — reads Hone's `.dreamers/reviews/` artifact for over-engineering, premature abstractions, redundancy, and bad architecture. May recommend full refactors. No auto-fix. Use when the user asks for dreamers-simplify, simplify this, audit for over-engineering, architectural review."
 ---
 
 ## Codex runtime
@@ -78,11 +78,12 @@ prompt:
   Branch: <current feature branch>
   Default branch: <detected default>
   Lens: simplicity / over-engineering / redundancy / bad architecture. Recommend full refactors when warranted.
-  Return: status line + severity-graded findings + observations + open questions.
+  Write: exactly one .dreamers/reviews/hone-*.md artifact.
+  Return: status + counts + artifact path + blocked reason + open questions only.
 ```
 
 ## Output
 
-Pass Hone's chat output through to the user verbatim. Do NOT apply any of the suggested fixes / refactors — this is a read-only audit. Surface any `Blocked` status or open questions for user follow-up.
+Read the artifact path returned by Hone and pass the artifact contents through to the user verbatim. Do NOT apply any of the suggested fixes / refactors — this is a read-only audit. Surface any `Blocked` status or open questions for user follow-up.
 
 If Hone recommends a large refactor, suggest: "Run `dreamers-plan` to scope the refactor, then `dreamers-full` to execute it."

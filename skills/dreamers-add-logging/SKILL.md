@@ -105,10 +105,9 @@ Run the project's type-check command after edits. Fix any type errors.
 
 Ask the user with `["Yes — review before commit", "No — skip review", "Other"]`.
 
-- Yes → spawn a sub-agent with `agent_type: sentinel` and the changed-files scope. Sentinel reviews under correctness/security/maintainability lenses; comment-rules + logging-standards violations surface here. Apply findings inline.
+- Yes → spawn a sub-agent with `agent_type: sentinel` and the changed-files scope. Sentinel reviews under correctness/security/maintainability lenses; comment-rules + logging-standards violations surface here. Require one `.dreamers/reviews/sentinel-*.md` artifact and read it before applying findings inline.
 - No → proceed to commit.
 
 ## Phase 5 — Commit
 
 `git status` to confirm staged content. Commit message: `chore: improve logging per logging-standards.md` (or appropriate). Do NOT push (user pushes when ready, or invokes `dreamers-pr` to push + open the PR).
-

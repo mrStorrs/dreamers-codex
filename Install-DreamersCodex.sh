@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+codex_home="${CODEX_HOME:-$HOME/.codex}"
+force=0
+
+usage() {
+  cat <<'EOF'
+Usage: ./Install-DreamersCodex.sh [--force] [--codex-home PATH]
+
+Installs Dreamers Codex-managed files into CODEX_HOME, or ~/.codex when CODEX_HOME is not set.
+EOF
+}
+
+while (($#)); do
+  case "$1" in
+    -f|--force)
+      force=1
+      ;;
+    --codex-home)
+      shift
+      if (($# == 0)); then
+        echo "Missing value for --codex-home" >&2
+        exit 1
+      fi
+      codex_home="$1"
+      ;;
+    --codex-home=*)
+      codex_home="${1#*=}"
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+legacy_agent_names=(echo forge hone nova probe sage sentinel)
+legacy_agent_toml_names=(bolt)
+
+copy_dreamers_files() {
+  local from="$1"
+  local to="$2"
+  local label="$3"
+  local count=0
+
+  if [[ ! -d "$from" ]]; then
+    printf '  WARN: source not found, skipping: %s\n' "$from" >&2
+    echo 0
+    return 0
+  fi
+
+  mkdir -p "$to"
+
+  shopt -s nullglob
+  for src in "$from"/*; do
+    [[ -f "$src" ]] || continue
+    local name
+    name="$(basename "$src")"
+    local dest="$to/$name"
+    if [[ -e "$dest" && $force -eq 0 ]]; then
+      printf '  SKIP (exists): %s/%s - use --force to overwrite\n' "$label" "$name" >&2
+      continue
+    fi
+    cp -f "$src" "$dest"
+    printf '  OK: %s/%s\n' "$label" "$name" >&2
+    count=$((count + 1))
+  done
+  shopt -u nullglob
+
+  echo "$count"
+}
+
+remove_legacy_agent_files() {
+  local target_dir="$1"
+  local count=0
+
+  if [[ ! -d "$target_dir" ]]; then
+    echo 0
+    return 0
+  fi
+
+  for name in "${legacy_agent_names[@]}"; do
+    local target="$target_dir/$name.md"
+    [[ -e "$target" ]] || continue
+    rm -f "$target"
+    printf '  REMOVED legacy: dreamers/agents/%s.md\n' "$name" >&2
+    count=$((count + 1))
+  done
+
+  if [[ -d "$target_dir" ]] && ! find "$target_dir" -mindepth 1 -print -quit | grep -q .; then
+    rmdir "$target_dir"
+    printf '  REMOVED empty legacy dir: dreamers/agents\n' >&2
+  fi
+
+  echo "$count"
+}
+
+remove_legacy_agent_tomls() {
+  local target_dir="$1"
+  local count=0
+
+  if [[ ! -d "$target_dir" ]]; then
+    echo 0
+    return 0
+  fi
+
+  for name in "${legacy_agent_toml_names[@]}"; do
+    local target="$target_dir/$name.toml"
+    [[ -e "$target" ]] || continue
+    rm -f "$target"
+    printf '  REMOVED legacy: agents/%s.toml\n' "$name" >&2
+    count=$((count + 1))
+  done
+
+  echo "$count"
+}
+
+printf '\nDreamers Codex Installer\n'
+printf 'Source:  %s\n' "$repo_root"
+printf 'Target:  %s\n\n' "$codex_home"
+
+total=0
+legacy_removed=0
+
+printf '[agents]\n'
+count="$(copy_dreamers_files "$repo_root/agents" "$codex_home/agents" "agents")"
+total=$((total + count))
+
+printf '[skills]\n'
+if [[ -d "$repo_root/skills" ]]; then
+  while IFS= read -r -d '' skill_dir; do
+    skill_name="$(basename "$skill_dir")"
+    if [[ "$skill_name" == dreamers-* ]]; then
+      count="$(copy_dreamers_files "$skill_dir" "$codex_home/skills/$skill_name" "skills/$skill_name")"
+      total=$((total + count))
+    fi
+  done < <(find "$repo_root/skills" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
+fi
+
+printf '[dreamers]\n'
+for name in refs templates instructions; do
+  count="$(copy_dreamers_files "$repo_root/dreamers/$name" "$codex_home/dreamers/$name" "dreamers/$name")"
+  total=$((total + count))
+done
+
+printf '[legacy]\n'
+count="$(remove_legacy_agent_tomls "$codex_home/agents")"
+legacy_removed=$((legacy_removed + count))
+count="$(remove_legacy_agent_files "$codex_home/dreamers/agents")"
+legacy_removed=$((legacy_removed + count))
+
+printf '\nInstalled %s Dreamers Codex file(s); removed %s legacy file(s).\n\n' "$total" "$legacy_removed"
