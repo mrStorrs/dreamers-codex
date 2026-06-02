@@ -61,7 +61,7 @@ def assert_path(path: Path, label: str) -> None:
         add_error(f"Missing {label}: {path}")
 
 
-expected_agents = ["echo", "forge", "hone", "nova", "probe", "sage", "sentinel"]
+expected_agents = ["echo", "forge", "hone", "nova", "probe", "sage", "sentinel", "vigil"]
 expected_skills = [
     "dreamers-add-logging",
     "dreamers-clean-work",
@@ -70,6 +70,7 @@ expected_skills = [
     "dreamers-docs",
     "dreamers-fix",
     "dreamers-full",
+    "dreamers-lite",
     "dreamers-implement",
     "dreamers-issue",
     "dreamers-new-project",
@@ -118,6 +119,7 @@ expected_skill_readmes = [
     "dreamers-cleanup-comments-branch",
     "dreamers-fix",
     "dreamers-full",
+    "dreamers-lite",
     "dreamers-implement",
     "dreamers-new-project",
     "dreamers-plan",

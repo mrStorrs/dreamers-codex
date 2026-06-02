@@ -1,6 +1,6 @@
 # Dreamers Codex
 
-Dreamers Codex is a Codex-native conversion of the Dreamers orchestration package. It keeps the original planning -> tests-first implementation -> reviewer triad -> docs -> PR flow, but exposes it as Codex skills instead of slash commands.
+Dreamers Codex is a Codex-native conversion of the Dreamers orchestration package. It keeps the original planning -> tests-first implementation -> review -> docs -> PR flow, but exposes it as Codex skills instead of slash commands.
 
 ## Layout
 
@@ -31,9 +31,10 @@ Mention the skill name in a Codex request:
 - `dreamers-implement` for one approved plan.
 - `dreamers-review` for full-triad, selected-lens, or single-lens review lanes.
 - `dreamers-full` for the complete pipeline, with gates inline at plan approval, implementation start, templated user testing when triggered, and final pre-PR approval.
+- `dreamers-lite` for a lean pipeline with one compact plan approval, Vigil artifact review, docs, and PR.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows.
 
-The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions.
+The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions.
 
 ## Validation
 
