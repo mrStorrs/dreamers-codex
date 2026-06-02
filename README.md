@@ -15,11 +15,19 @@ dreamers/instructions/*.md     # compatibility instruction files
 
 ## Install For Direct Skill Discovery
 
+Linux:
+
+```bash
+./Install-DreamersCodex.sh
+```
+
+Windows:
+
 ```powershell
 .\Install-DreamersCodex.ps1
 ```
 
-By default the installer targets `$env:CODEX_HOME` when set, otherwise `~/.codex`. It copies Codex agent definitions to `agents/`, skills to `skills/`, and shared Dreamers refs/templates/instructions to `dreamers/` under that home. It also removes the legacy deployed `dreamers/agents/` prompt copies from earlier conversions. Use `-Force` to overwrite existing Dreamers files.
+By default the installer targets `CODEX_HOME` when set, otherwise `~/.codex`. It copies Codex agent definitions to `agents/`, skills to `skills/`, and shared Dreamers refs/templates/instructions to `dreamers/` under that home. It also removes the legacy deployed `dreamers/agents/` prompt copies from earlier conversions. Use `--force` in bash or `-Force` in PowerShell to overwrite existing Dreamers files.
 
 ## Use
 
