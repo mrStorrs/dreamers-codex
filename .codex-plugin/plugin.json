@@ -29,7 +29,8 @@
     "defaultPrompt": [
       "Use dreamers-plan to plan this feature.",
       "Use dreamers-review on my current diff.",
-      "Use dreamers-full to plan and ship this change."
+      "Use dreamers-full to plan and ship this change.",
+      "Use dreamers-lite for a lean plan and ship flow."
     ]
   }
 }

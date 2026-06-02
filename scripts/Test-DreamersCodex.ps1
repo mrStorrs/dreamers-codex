@@ -34,7 +34,7 @@ function Assert-Path {
     if (-not (Test-Path $Path)) { Add-Error "Missing ${Label}: $Path" }
 }
 
-$expectedAgents = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel")
+$expectedAgents = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel", "vigil")
 $expectedSkills = @(
     "dreamers-add-logging",
     "dreamers-clean-work",
@@ -43,6 +43,7 @@ $expectedSkills = @(
     "dreamers-docs",
     "dreamers-fix",
     "dreamers-full",
+    "dreamers-lite",
     "dreamers-implement",
     "dreamers-issue",
     "dreamers-new-project",
@@ -91,6 +92,7 @@ $expectedSkillReadmes = @(
     "dreamers-cleanup-comments-branch",
     "dreamers-fix",
     "dreamers-full",
+    "dreamers-lite",
     "dreamers-implement",
     "dreamers-new-project",
     "dreamers-plan",
