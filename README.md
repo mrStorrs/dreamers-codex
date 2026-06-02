@@ -42,7 +42,7 @@ Mention the skill name in a Codex request:
 - `dreamers-lite` for a lean pipeline with one compact plan approval, Vigil artifact review, docs, and PR.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows.
 
-The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions. Sentinel, Probe, Hone, and Vigil write durable `.dreamers/reviews/` artifacts; orchestrators read those artifacts before reporting or applying findings. `dreamers-full` runs Sentinel, Probe, and Hone once per plan, then uses Vigil for normal review reruns unless a major-change gate asks the user and the user chooses another lane.
+The converted skills apply `dreamers/refs/codex-runtime.md` to translate the former command, delegation, and approval-gate concepts into Codex tool usage. Dreamers roles are spawned by Codex agent type (`forge`, `sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `nova`) from the top-level `agents/*.toml` definitions. Sentinel, Probe, Hone, and Vigil write durable `.dreamers/reviews/` artifacts; orchestrators read those artifacts before reporting or applying findings. `dreamers-full` runs Sentinel, Probe, and Hone once per plan, then uses Vigil for normal review reruns unless a major-change gate asks the user and the user chooses another lane. Other skills that need a review call Vigil, not individual Sentinel/Probe/Hone lanes.
 
 ## Validation
 
