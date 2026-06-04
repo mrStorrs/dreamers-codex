@@ -28,7 +28,7 @@ Project instructions may live in `AGENTS.md`, `CODEX.md`, `AGENTS.md`, `CODEX.md
 ## Delegation
 - Use `tool_search` to discover `multi_agent_v1` if multi-agent tools are not visible.
 - Use `multi_agent_v1.spawn_agent` only when the user invoked a Dreamers workflow that explicitly includes delegated reviewer, documentarian, or researcher roles, such as `dreamers-review`, `dreamers-docs`, `dreamers-research`, or `dreamers-full`.
-- Spawn by Codex `agent_type` using the Dreamers role name (`sentinel`, `probe`, `hone`, `echo`, `sage`, `forge`, or `nova`). Put the workflow-specific context in `message`; do not paste or load Markdown role prompt files.
+- Spawn by Codex `agent_type` using the Dreamers role name (`sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `forge`, or `nova`). Put the workflow-specific context in `message`; do not paste or load Markdown role prompt files.
 - If multi-agent tools are unavailable, run the requested lens inline and label the output with the role name.
 
 ## Tool Translation
