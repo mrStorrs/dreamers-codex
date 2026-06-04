@@ -29,11 +29,11 @@ flowchart TD
     TestResult -->|No| HaltA(["Halt + surface"])
     TestResult -->|Yes| S5
 
-    S5["Step 5 — Selected-lane review"] --> SpawnLane["Spawn Sentinel required<br/>add Probe/Hone only when needed<br/>write review artifacts"]
-    SpawnLane --> ReadArtifacts["Read reviewer artifacts"]
+    S5["Step 5 — Vigil review"] --> SpawnVigil["Spawn Vigil<br/>write review artifact"]
+    SpawnVigil --> ReadArtifacts["Read Vigil artifact"]
     ReadArtifacts --> ReviewResult{"Reviewer<br/>statuses?"}
     ReviewResult -->|Blocked| HaltB(["Halt + surface;<br/>resolve + re-spawn"])
-    ReviewResult -->|Findings| ApplyReviewer["Apply findings inline<br/>major-refactor gate per dreamers-review<br/>re-run tests"]
+    ReviewResult -->|Findings| ApplyReviewer["Apply Vigil findings inline<br/>major-refactor gate per dreamers-review<br/>re-run tests"]
     ReviewResult -->|Approved no findings| S6
     ApplyReviewer --> S6
 
@@ -48,7 +48,7 @@ flowchart TD
     S7["Step 7 — Resolve accepted threads"] --> ResolveGQL["gh api graphql<br/>resolveReviewThread per accepted"]
     ResolveGQL --> S8
 
-    S8["Step 8 — Report"] --> End(["N accepted + rationale<br/>M rejected + rationale<br/>commit hash + push status<br/>reviewer artifact results"])
+    S8["Step 8 — Report"] --> End(["N accepted + rationale<br/>M rejected + rationale<br/>commit hash + push status<br/>Vigil artifact result"])
 
     classDef gate fill:#92400e,stroke:#78350f,stroke-width:2px,color:#fff
     classDef halt fill:#7f1d1d,stroke:#991b1b,stroke-width:2px,color:#fff
@@ -57,7 +57,7 @@ flowchart TD
 
     class PRCheck,HasThreads,AcceptedAny,TestResult,ReviewResult,PushGate gate
     class HaltA,HaltB,HaltC halt
-    class SpawnLane agent
+    class SpawnVigil agent
     class S1,S2,S3,S4,S5,S6,S7,S8,UseSpecified,PickPR,UseOne,Query,PerThread,ApplyFixes,ReadArtifacts,ApplyReviewer,CommitFixes,Push,ResolveGQL,S7Skip phase
 ```
 
@@ -66,6 +66,6 @@ flowchart TD
 - **GraphQL only** for unresolved-thread discovery. The REST API's `resolved` field is unreliable.
 - **Reject is OK.** Don't feel obligated to accept every comment. If a suggestion conflicts with the plan, architecture, or is simply wrong, reject with rationale.
 - **Rejected threads stay open** — they represent active disagreements the reviewer should see.
-- **Selected review lane.** Accepted fixes require Sentinel. Add Probe for coverage/regression risk and Hone for architecture/refactor risk. Read each reviewer artifact before applying findings.
+- **Vigil is required for accepted fixes.** Keep PR-feedback review to one artifact-backed Vigil pass. Pass coverage/regression or architecture/refactor risk notes into Vigil's prompt, then read the artifact before applying findings.
 - **Push requires explicit approval.** Post-PR changes never auto-push.
 - **Hold is a valid exit** — the commit stays on the branch for the user to push manually later.

@@ -1,6 +1,6 @@
 ---
 name: dreamers-test
-description: "Standalone Probe review (test coverage audit). Read-only — reads Probe's `.dreamers/reviews/` artifact for AC coverage, layer audit, edge cases, and regression risks. No auto-fix. Use when the user asks for dreamers-test, test coverage audit, audit tests, check test gaps."
+description: "Standalone focused Vigil review (test coverage audit). Read-only — reads Vigil's `.dreamers/reviews/` artifact for AC coverage, layer audit, edge cases, and regression risks. No auto-fix. Use when the user asks for dreamers-test, test coverage audit, audit tests, check test gaps."
 ---
 
 ## Codex runtime
@@ -130,25 +130,25 @@ Default scope (no flags): staged + unstaged changes.
 
 ---
 
-## Spawn Probe
+## Spawn Vigil
 
 Invoke via the runtime's subagent-spawn mechanism:
 
 ```
-agent_type: `probe`
+agent_type: `vigil`
 wait: use `multi_agent_v1.wait_agent` for the result
 prompt:
-  Context: Standalone test-coverage audit via dreamers-test. No plan binding (ad-hoc audit).
+  Context: Standalone focused Vigil audit via dreamers-test. No plan binding (ad-hoc audit).
   Scope: <list of files from arg parsing above>
   Branch: <current feature branch>
   Default branch: <detected default>
-  Lens: test coverage (AC matrix is N/A here — no plan binding; focus on layer audit + edge cases + regression risks for the scope).
-  Write: exactly one .dreamers/reviews/probe-*.md artifact.
+  Focus: test coverage (AC matrix is N/A here — no plan binding; prioritize layer audit + edge cases + regression risks for the scope, while still reporting critical correctness/security/maintainability/simplicity findings if they appear).
+  Write: exactly one .dreamers/reviews/vigil-*.md artifact.
   Return: status + counts + artifact path + blocked reason + open questions only.
 ```
 
 ## Output
 
-Read the artifact path returned by Probe and pass the artifact contents through to the user verbatim. Do NOT write any tests — this is a read-only audit. Surface any `Blocked` status or open questions for user follow-up.
+Read the artifact path returned by Vigil and pass the artifact contents through to the user verbatim. Do NOT write any tests — this is a read-only audit. Surface any `Blocked` status or open questions for user follow-up.
 
 If the user wants missing tests written from the findings, suggest: "Run `dreamers-implement` with a plan that addresses these coverage gaps."
