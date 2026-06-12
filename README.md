@@ -39,7 +39,7 @@ Mention the skill name in a Codex request:
 - `dreamers-implement` for one approved plan.
 - `dreamers-review` for artifact-backed full-triad, selected-lens, or single-lens review lanes.
 - `dreamers-full` for the complete pipeline, with one automatic triad review per plan, Vigil follow-up review reruns by default, user-gated extra triad/selected-lane reruns for major changes, and gates inline at plan approval, implementation start, templated user testing when triggered, and final pre-PR approval.
-- `dreamers-lite` for a lean pipeline with one compact plan approval, Vigil artifact review, docs, and PR.
+- `dreamers-lite` for a lean pipeline that accepts a task description or existing plan path(s). Task mode uses one compact plan approval; plan path mode skips planning and uses the supplied plan file(s) directly. Both modes run Vigil artifact review, docs, and PR.
 - `dreamers-find-refactors` for refactor discovery: select lenses, section the repo, run section-scoped Hone audits, synthesize findings, write Dreamers plan files, then stop.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows.
 
