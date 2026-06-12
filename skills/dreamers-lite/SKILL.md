@@ -1,6 +1,6 @@
 ---
 name: dreamers-lite
-description: "Lean end-to-end Dreamers Codex pipeline. Reviews project context, proposes a compact plan with critique, writes the approved plan, implements tests-first, runs Vigil once, applies findings, runs docs, commits, and opens the PR. Use when the user asks for dreamers-lite, lite pipeline, lightweight feature, quick ship."
+description: "Lean end-to-end Dreamers Codex pipeline. Accepts a task description or existing plan file(s). For task descriptions, reviews project context, proposes a compact plan with critique, then writes the approved plan. For plan paths, skips planning and uses the supplied plan file(s) directly. Implements tests-first, runs Vigil once, applies findings, runs docs, commits, and opens the PR. Use when the user asks for dreamers-lite, lite pipeline, lightweight feature, quick ship."
 ---
 
 ## Codex runtime
@@ -8,12 +8,24 @@ Before executing this skill, apply the Codex runtime mapping from `../dreamers/r
 
 Skill input: use the user's message, including any paths or flags.
 
-If no task description was provided, halt + ask.
+If no task description or plan path was provided, halt + ask.
+
+## Modes
+| Mode | Skill input | Phase 1 / 2 behavior |
+|---|---|---|
+| 1 | Task description | Run Phase 1 proposal, then Phase 2 writes plan file(s). |
+| 2 | Plan path(s) | Skip Phase 1 and plan-writing. Use supplied plan file(s) directly. |
+
+Plan path mode:
+- Treat input ending in `.md` as plan paths when they resolve to files, or when they match `feature-<slug>/plan-NN-<name>.md`.
+- Resolve `feature-<slug>/plan-NN-<name>.md` under `.dreamers/plans/`.
+- Preserve the provided order as the implementation sequence.
+- Do not re-plan, rewrite, or reopen the plan approval gate.
 
 ## Codex todo - Before you begin
 - Call `update_plan` with a todo list marking all phases at entry: Phase 1 / Phase 2 / Phase 3 cycle-N / Phase 4.
 
-## Phase 1 - Context + proposal
+## Phase 1 - Context + proposal (Mode 1 only)
 - Anchor to remote truth per `git-workflow`: detect default branch, fetch, read `origin/$DEFAULT_BRANCH` log.
 - Read project instructions and relevant code. Verify cited artifacts before claiming behavior.
 - Ask clarifying questions.
@@ -31,12 +43,13 @@ If no task description was provided, halt + ask.
 - Ask the user to choose: `Approved - write plan and implement` / `Revise` / `Halt` / `Other`.
 - On `Revise`, update the proposal, re-critique, and re-present. Approval is the implementation-start gate.
 
-## Phase 2 - Plan file + branch
-- Write approved proposal into `.dreamers/plans/feature-<slug>/` as compact guide-compatible plan file(s).
-- Use plan sections only: Goal, Context, Acceptance Criteria, Out of Scope, Constraints, optional Design Decisions, optional UI, Verification.
-- If multiple plans share constraints, decisions, data models, or end-to-end ACs, write `manifest.md`; otherwise skip manifest.
-- Self-check plan structure against `plan-writing-guide.md`. Fix violations before implementation.
-- Set up branch per `git-workflow`: checkout fresh default, pull, cut `feat/<slug>`, confirm `.dreamers/` is gitignored.
+## Phase 2 - Plan source + branch
+- Mode 1: write approved proposal into `.dreamers/plans/feature-<slug>/` as compact guide-compatible plan file(s).
+- Mode 1: use plan sections only: Goal, Context, Acceptance Criteria, Out of Scope, Constraints, optional Design Decisions, optional UI, Verification.
+- Mode 1: if multiple plans share constraints, decisions, data models, or end-to-end ACs, write `manifest.md`; otherwise skip manifest.
+- Mode 2: resolve and read each supplied plan file; halt if any file is missing, is outside `.dreamers/plans/`, or is not a `plan-*.md` file.
+- Self-check plan structure against `plan-writing-guide.md`. In Mode 1, fix violations before implementation. In Mode 2, surface violations and ask before editing supplied plan files.
+- Set up branch per `git-workflow`: checkout fresh default, pull, cut `feat/<slug>`, confirm `.dreamers/` is gitignored. In Mode 2, derive `<slug>` from the supplied feature directory.
 
 ## Phase 3 - Per plan implementation + Vigil
 
