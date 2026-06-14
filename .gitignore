@@ -21,6 +21,8 @@ dist/
 build/
 out/
 coverage/
+__pycache__/
+*.pyc
 
 # PowerShell artifacts
 *.ps1xml
