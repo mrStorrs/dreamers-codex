@@ -29,6 +29,26 @@ Windows:
 
 By default the installer targets `CODEX_HOME` when set, otherwise `~/.codex`. It copies Codex agent definitions to `agents/`, skills to `skills/`, and shared Dreamers refs/templates/instructions to `dreamers/` under that home. It also removes the legacy deployed `dreamers/agents/` prompt copies from earlier conversions. Use `--force` in bash or `-Force` in PowerShell to overwrite existing Dreamers files.
 
+## Optional Stats And MCP Bundle
+
+Base `dreamers-codex` installs stay stats-free by default. They do not install Dreamers stats hooks, Dreamers MCP server config, or any `dreamers-mcp` runtime files.
+
+If you want Codex stats capture and the Dreamers stats MCP server, install the optional bundle from your local `dreamers-mcp` checkout instead:
+
+Linux:
+
+```bash
+/path/to/dreamers-mcp/Install-DreamersMcpCodex.sh --dreamers-mcp-path /path/to/dreamers-mcp
+```
+
+Windows:
+
+```powershell
+\path\to\dreamers-mcp\Install-DreamersMcpCodex.ps1 -DreamersMcpPath \path\to\dreamers-mcp
+```
+
+That optional bundle installs hook wrappers plus local `hooks.json` and `config.toml` updates under `CODEX_HOME`, and it removes only Dreamers-managed entries when you uninstall it. Codex treats those hooks as non-managed command hooks, so users should review and trust them inside Codex before expecting them to run.
+
 ## Use
 
 Explicit user instructions can skip or alter skill phases/actions.
@@ -47,7 +67,7 @@ The converted skills apply `dreamers/refs/codex-runtime.md` to translate the for
 
 ## Validation
 
-Use `scripts/sync-refs.ps1 -Verify` or `scripts/sync-refs.sh -Verify` to check inlined ref drift. Use `scripts/Test-DreamersCodex.ps1` or `scripts/Test-DreamersCodex.sh` for Codex package structure, catalog, and stale-token validation.
+Use `scripts/sync-refs.ps1 -Verify` or `scripts/sync-refs.sh -Verify` to check inlined ref drift. Use `scripts/Test-DreamersCodex.ps1` or `scripts/Test-DreamersCodex.sh` for Codex package structure, catalog, stale-token validation, and base-install stats-surface regression checks.
 
 ## Maintaining Dreamers
 

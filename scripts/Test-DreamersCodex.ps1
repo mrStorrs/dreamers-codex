@@ -301,4 +301,9 @@ if ($errors.Count -gt 0) {
     exit 1
 }
 
+python3 -m unittest tests/test_base_install_surface.py
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+
 Write-Host "Dreamers Codex validation passed." -ForegroundColor Green

@@ -279,3 +279,5 @@ if errors:
 
 print("Dreamers Codex validation passed.")
 PY
+
+python3 -m unittest tests/test_base_install_surface.py
