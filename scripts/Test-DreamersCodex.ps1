@@ -64,6 +64,7 @@ $expectedRefs = @(
     "comment-rules.md",
     "dreamers-kernel.md",
     "git-workflow.md",
+    "hone-architecture-rubric.md",
     "logging-discipline.md",
     "project-bootstrap.md",
     "reviewer-findings-format.md",
