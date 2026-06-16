@@ -25,3 +25,6 @@ coverage/
 # PowerShell artifacts
 *.ps1xml
 *.psd1.bak
+
+# Dreamers workspace
+.dreamers/
