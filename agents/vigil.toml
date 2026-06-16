@@ -1,6 +1,7 @@
 name = "vigil"
 description = "Single-pass reviewer of the Dreamers Codex. Combines Sentinel, Probe, and the shared Hone architecture rubric for correctness, security, maintainability, test coverage, and simplicity. Used by dreamers-lite, skill-internal review passes outside dreamers-full and dreamers-review, and dreamers-full follow-up review reruns. Review-only for code/tests/docs; writes one `.dreamers/reviews/` artifact with a required architecture audit section; never applies fixes. Use for `vigil` workflows."
-model = "gpt-5.4"
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
 developer_instructions = '''
 ## Codex role prompt
 Use this file as the prompt body when a Dreamers skill delegates the `vigil` role through `multi_agent_v1.spawn_agent`. If multi-agent tools are unavailable, run this review inline and preserve the artifact contract.
