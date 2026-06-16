@@ -292,7 +292,7 @@
       "type": "skill",
       "slug": "dreamers-pr",
       "name": "dreamers-pr",
-      "description": "PR creation skill — pushes the current branch, drafts the PR body from the pr-description template, opens the PR via gh, optionally posts an issue resolution comment.",
+      "description": "PR creation skill — pushes the current branch, drafts the PR body from the pr-description template, opens the PR via gh, optionally posts an issue resolution comment, and archives shipped Dreamers plan artifacts.",
       "author": "CJ Storrs",
       "tags": [
         "code",
