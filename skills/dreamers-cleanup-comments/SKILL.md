@@ -1,6 +1,6 @@
 ---
 name: dreamers-cleanup-comments
-description: "Project-wide comment cleanup pass per comment-rules.md. Audit → propose → user approval → apply inline → optional Sentinel review. Use when the user asks for dreamers-cleanup-comments, clean up comments, audit comments, remove fluff comments."
+description: "Project-wide comment cleanup pass per comment-rules.md. Audit → propose → user approval → apply inline → optional Vigil review. Use when the user asks for dreamers-cleanup-comments, clean up comments, audit comments, remove fluff comments."
 ---
 
 ## Codex runtime
@@ -86,7 +86,7 @@ At skill entry, declare via `update_plan`:
 - [ ] Phase 1 — audit comment-rules violations
 - [ ] Phase 2 — proposal + user approval
 - [ ] Phase 3 — apply cleanup inline
-- [ ] Phase 4 — optional Sentinel review (if requested)
+- [ ] Phase 4 — optional Vigil review (if requested)
 - [ ] Phase 5 — commit
 
 Mark each item `in_progress` when starting, `completed` when done. Never batch completions at the end.
@@ -123,11 +123,11 @@ Edit files inline; stage with `git add`. Follow `dreamers-kernel.md` implementat
 
 Run the project's type-check command after edits (comments don't usually affect type-check but verify).
 
-## Phase 4 — Optional Sentinel review
+## Phase 4 — Optional Vigil review
 
-Ask the user with `["Yes — review before commit", "No — skip review", "Other"]`. Sentinel's maintainability lens catches anything the cleanup missed or newly-introduced ambiguity.
+Ask the user with `["Yes — review before commit", "No — skip review", "Other"]`. Vigil's maintainability lens catches anything the cleanup missed or newly-introduced ambiguity.
 
-- Yes → spawn a sub-agent with `agent_type: sentinel` and changed-files scope. Require one `.dreamers/reviews/sentinel-*.md` artifact and read it before applying findings inline.
+- Yes → spawn a sub-agent with `agent_type: vigil` and changed-files scope. Prompt Vigil to focus on comment-rules and maintainability, while still reporting correctness/security/coverage/simplicity findings if they appear. Require one `.dreamers/reviews/vigil-*.md` artifact and read it before applying findings inline.
 - No → proceed to commit.
 
 ## Phase 5 — Commit

@@ -1,5 +1,6 @@
 name = "sage"
 description = "Researcher of the Dreamers Codex — conducts deep, multi-perspective research on any topic. Produces comprehensive, citation-backed reports with verified sources. Use for `sage` workflows."
+model = "gpt-5.5"
 developer_instructions = '''
 ## Codex role prompt
 Use this file as the prompt body when a Dreamers skill delegates the `sage` role through `multi_agent_v1.spawn_agent`. If multi-agent tools are unavailable, run this lens inline and preserve the output contract.
@@ -245,4 +246,3 @@ In chat, Sage outputs ONLY:
 - File paths created/updated
 - Any blocking questions or clarifications needed
 '''
-

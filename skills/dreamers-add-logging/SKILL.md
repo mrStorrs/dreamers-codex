@@ -1,6 +1,6 @@
 ---
 name: dreamers-add-logging
-description: "Phased pass to add or improve project logging per logging-standards.md. Audit current state → propose changes → user approval → implement inline → optional Sentinel review. Use when the user asks for dreamers-add-logging, add logging, improve logging, audit log calls."
+description: "Phased pass to add or improve project logging per logging-standards.md. Audit current state → propose changes → user approval → implement inline → optional Vigil review. Use when the user asks for dreamers-add-logging, add logging, improve logging, audit log calls."
 ---
 
 ## Codex runtime
@@ -61,7 +61,7 @@ At skill entry, declare via `update_plan`:
 - [ ] Phase 1 — audit current logging state
 - [ ] Phase 2 — proposal + user approval
 - [ ] Phase 3 — implement approved changes
-- [ ] Phase 4 — optional Sentinel review
+- [ ] Phase 4 — optional Vigil review
 - [ ] Phase 5 — commit
 
 Mark each item `in_progress` when starting, `completed` when done. Never batch completions at the end.
@@ -101,11 +101,11 @@ Apply the approved changes inline. Stage with `git add` as you go. Follow `dream
 
 Run the project's type-check command after edits. Fix any type errors.
 
-## Phase 4 — Optional Sentinel review
+## Phase 4 — Optional Vigil review
 
 Ask the user with `["Yes — review before commit", "No — skip review", "Other"]`.
 
-- Yes → spawn a sub-agent with `agent_type: sentinel` and the changed-files scope. Sentinel reviews under correctness/security/maintainability lenses; comment-rules + logging-standards violations surface here. Require one `.dreamers/reviews/sentinel-*.md` artifact and read it before applying findings inline.
+- Yes → spawn a sub-agent with `agent_type: vigil` and the changed-files scope. Prompt Vigil to focus on logging-standards plus correctness/security/maintainability risks, while still reporting coverage or simplicity findings if they appear. Require one `.dreamers/reviews/vigil-*.md` artifact and read it before applying findings inline.
 - No → proceed to commit.
 
 ## Phase 5 — Commit

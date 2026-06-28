@@ -1,6 +1,6 @@
 ---
 name: dreamers-full
-description: "End-to-end Dreamers Codex pipeline. Invokes dreamers-plan, halts for plan review / implementation start, implements each plan inline (writes tests + code + runs tests), runs the full dreamers-review triad once per plan, applies findings inline with the major-refactor gate, uses Vigil for normal review reruns, gates any extra triad/selected-lane rerun on user approval, halts for templated user testing when triggered, then close-out (inline + dreamers-docs + pre-PR approval + dreamers-pr). Use when the user asks for dreamers-full, full pipeline, plan and implement, new feature, ship a feature."
+description: "End-to-end Dreamers Codex pipeline. Accepts a task description, existing plan file(s), or a feature manifest. Task mode invokes dreamers-plan and uses the plan review / implementation-start gate; plan path and manifest modes skip planning and the implementation-start gate, then use the supplied artifacts directly. Implements each plan inline (writes tests + code + runs tests), runs the full dreamers-review triad once per plan, applies findings inline with the major-refactor gate, uses Vigil for normal review reruns, gates any extra triad/selected-lane rerun on user approval, halts for templated user testing when triggered, then close-out (inline + dreamers-docs + pre-PR approval + dreamers-pr). Use when the user asks for dreamers-full, full pipeline, plan and implement, new feature, ship a feature."
 ---
 
 ## Codex runtime
@@ -8,21 +8,39 @@ Before executing this skill, apply the Codex runtime mapping from `../dreamers/r
 
 Skill input: use the user's message, including any paths or flags.
 
+If no task description, plan path, or manifest was provided, halt + ask.
+
 ## Modes
-| Mode | Input | Phase 1 |
+| Mode | Input | Phase 1 / 1.5 behavior |
 |---|---|---|
-| 1 | Task description | Invoke `dreamers-plan <task description>` → capture plan paths from its output |
-| 2 | Plan path(s) | Skip (plans pre-existing) |
-| 3 | `manifest.md` | Skip; read manifest → capture plan sequence + shared-context payload |
+| 1 | Task description | Invoke `dreamers-plan <task description>` → capture plan paths from its output → run Phase 1.5 gate |
+| 2 | Plan path(s) | Skip planning and Phase 1.5; use supplied plan file(s) directly |
+| 3 | `manifest.md` | Skip planning and Phase 1.5; read manifest → capture plan sequence + shared-context payload |
+
+Plan path mode:
+- Treat input entries ending in `.md` as plan paths when they resolve under `.dreamers/plans/`, or when they match `feature-<slug>/plan-NN-<name>.md`.
+- Resolve `feature-<slug>/plan-NN-<name>.md` under `.dreamers/plans/`.
+- Preserve the provided order as the implementation sequence.
+- Resolve and read each supplied plan file before branch setup; halt if any file is missing, is outside `.dreamers/plans/`, or is not a `plan-*.md` file.
+- Do not invoke `dreamers-plan`, re-plan, write replacement plan files, or ask for implementation-start approval.
+- For multi-plan runs, honor an explicit user-supplied strategy; otherwise set `strategy=ATOMIC` without asking.
+
+Manifest mode:
+- Treat `manifest.md` as manifest mode when it resolves under `.dreamers/plans/`, or when it matches `feature-<slug>/manifest.md`.
+- Resolve `feature-<slug>/manifest.md` under `.dreamers/plans/`.
+- Read the manifest before branch setup, capture the plan sequence and shared-context payload, and preserve that sequence through Phase 2.
+- Do not invoke `dreamers-plan`, re-plan, write replacement plan files, or ask for implementation-start approval.
+- Honor an explicit user-supplied strategy; otherwise set `strategy=ATOMIC` without asking.
 
 ## Codex todo - Before you begin
-- Call `update_plan` with a todo list marking all phases at entry: Phase 1 / Phase 1.5 / Phase 2 cycle-N / Phase 3.
+- Call `update_plan` with a todo list marking all phases at entry. Mode 1: Phase 1 / Phase 1.5 / Phase 2 cycle-N / Phase 3. Modes 2 and 3: Artifact resolution / Phase 2 cycle-N / Phase 3.
 
 ## Phase 1 — Planning (Mode 1 only)
 - Invoke `dreamers-plan <task description>`. Wait. Capture plan paths.
 - Halt this skill if `dreamers-plan` halts without approval.
 
-## Phase 1.5 — Plan review / implementation start gate
+## Phase 1.5 — Plan review / implementation start gate (Mode 1 only)
+- Do not run Phase 1.5 for plan path or manifest mode. After artifact checks pass, proceed directly to Phase 2.
 - Read the plan path(s). If manifest mode, also read the manifest shared-context payload.
 - If multiple plans will run, score against `plan-writing-guide.md` § "Ship strategy heuristics."
 - Present the written plan path(s), implementation scope, test intent, and any ship-strategy recommendation.

@@ -84,7 +84,7 @@
       "type": "agent",
       "slug": "sentinel",
       "name": "sentinel",
-      "description": "Reviewer of the Dreamers — read-only / report-only reviewer of correctness, security, and maintainability. Writes one `.dreamers/reviews/` artifact. One of three parallel reviewers (with Probe and Hone) in the Dreamers pipeline's review phase. Orchestrator applies fixes.",
+      "description": "Reviewer of the Dreamers — read-only / report-only reviewer of correctness, security, and maintainability. Writes one `.dreamers/reviews/` artifact. Part of the full per-plan dreamers-full review gate and explicit dreamers-review selected lanes. Orchestrator applies fixes.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -97,7 +97,7 @@
       "type": "agent",
       "slug": "vigil",
       "name": "vigil",
-      "description": "Single-pass reviewer of the Dreamers Codex. Combines Sentinel, Probe, and Hone lenses for correctness, security, maintainability, test coverage, and simplicity. Used by dreamers-lite and dreamers-full follow-up review reruns. Review-only for code/tests/docs; writes one `.dreamers/reviews/` artifact; never applies fixes.",
+      "description": "Single-pass reviewer of the Dreamers Codex. Combines Sentinel, Probe, and the shared Hone architecture rubric for correctness, security, maintainability, test coverage, and simplicity. Used by dreamers-lite, skill-internal reviews outside dreamers-full and dreamers-review, and dreamers-full follow-up review reruns. Review-only for code/tests/docs; writes one `.dreamers/reviews/` artifact with a required architecture audit section; never applies fixes.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -110,7 +110,7 @@
       "type": "skill",
       "slug": "dreamers-add-logging",
       "name": "dreamers-add-logging",
-      "description": "Phased pass to add or improve project logging per `logging-standards.md`. Audit → propose → user approval → implement inline → optional Sentinel review.",
+      "description": "Phased pass to add or improve project logging per `logging-standards.md`. Audit → propose → user approval → implement inline → optional Vigil review.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -136,7 +136,7 @@
       "type": "skill",
       "slug": "dreamers-cleanup-comments",
       "name": "dreamers-cleanup-comments",
-      "description": "Project-wide comment cleanup pass per `comment-rules.md`. Audit → propose → user approval → apply inline → optional Sentinel review.",
+      "description": "Project-wide comment cleanup pass per `comment-rules.md`. Audit → propose → user approval → apply inline → optional Vigil review.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -175,7 +175,7 @@
       "type": "skill",
       "slug": "dreamers-fix",
       "name": "dreamers-fix",
-      "description": "Lightweight bug-fix pipeline. Self-contained: cuts fix/<slug> from fresh origin/<default>, implements inline, runs project tests + Sentinel review in parallel, optionally invokes Echo for docs, pushes + opens PR. No plan file, no Probe, no Hone, no dreamers-full call. On scope blowup, surfaces choice to escalate to dreamers-full; does not auto-route.",
+      "description": "Lightweight bug-fix pipeline. Self-contained: cuts fix/<slug> from fresh origin/<default>, writes a regression test, implements inline, runs project tests, and exits at green tests. Next step is Vigil review, then commit + dreamers-pr. No dreamers-full call. On scope blowup, surfaces choice to escalate to dreamers-full; does not auto-route.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -186,9 +186,22 @@
     },
     {
       "type": "skill",
+      "slug": "dreamers-find-refactors",
+      "name": "dreamers-find-refactors",
+      "description": "Refactor discovery pipeline. Selects refactor lenses, sections the repo, runs section-scoped Hone audits, synthesizes findings, writes guide-compatible Dreamers plan files, and stops. Read-only for project code; no implementation, branch, commit, push, or PR.",
+      "author": "CJ Storrs",
+      "tags": [
+        "code",
+        "dreamers",
+        "skill"
+      ],
+      "path": "skills/dreamers-find-refactors/SKILL.md"
+    },
+    {
+      "type": "skill",
       "slug": "dreamers-full",
       "name": "dreamers-full",
-      "description": "End-to-end Dreamers pipeline. Invokes dreamers-plan, halts for plan review / implementation start, implements each plan inline (writes failing tests, code, runs tests), invokes artifact-backed full dreamers-review once per plan, applies findings inline with the major-refactor gate, uses Vigil for normal review reruns, gates any extra triad/selected-lane rerun on user approval, halts for templated user testing when triggered, then close-out (inline + dreamers-docs + pre-PR approval + dreamers-pr). Accepts a task description, variadic plan paths, or a feature manifest. In manifest mode, threads cross-plan shared context into per-cycle reviewer prompts.",
+      "description": "End-to-end Dreamers Codex pipeline. Accepts a task description, existing plan path(s), or a feature manifest. Task mode invokes dreamers-plan and uses the plan review / implementation-start gate; plan path and manifest modes skip planning and the implementation-start gate, then use supplied artifacts directly. Implements each plan inline (writes failing tests, code, runs tests), invokes artifact-backed full dreamers-review once per plan, applies findings inline with the major-refactor gate, uses Vigil for normal review reruns, gates any extra triad/selected-lane rerun on user approval, halts for templated user testing when triggered, then close-out (inline + dreamers-docs + pre-PR approval + dreamers-pr). In manifest mode, threads cross-plan shared context into per-cycle reviewer prompts.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -201,7 +214,7 @@
       "type": "skill",
       "slug": "dreamers-lite",
       "name": "dreamers-lite",
-      "description": "Lean end-to-end Dreamers Codex pipeline. Reviews project context, proposes a compact plan with critique, writes the approved plan, implements tests-first, runs Vigil once, applies findings, runs docs, commits, and opens the PR. No second plan gate or pre-PR gate.",
+      "description": "Lean end-to-end Dreamers Codex pipeline. Accepts a task description or existing plan path(s). Task mode reviews project context, proposes a compact plan with critique, and writes the approved plan; plan path mode skips planning, plan writing, and implementation-start approval, then uses the supplied plan file(s) directly. Implements tests-first, runs Vigil once, applies findings, runs docs, commits, and opens the PR. No second plan gate or pre-PR gate.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -279,7 +292,7 @@
       "type": "skill",
       "slug": "dreamers-pr",
       "name": "dreamers-pr",
-      "description": "PR creation skill — pushes the current branch, drafts the PR body from the pr-description template, opens the PR via gh, optionally posts an issue resolution comment.",
+      "description": "PR creation skill — pushes the current branch, drafts the PR body from the pr-description template, opens the PR via gh, optionally posts an issue resolution comment, and archives shipped Dreamers plan artifacts.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -292,7 +305,7 @@
       "type": "skill",
       "slug": "dreamers-pr-resolve",
       "name": "dreamers-pr-resolve",
-      "description": "Resolve unresolved PR review comments inline. Orchestrator decides accept/reject per thread, applies fixes, runs required artifact-backed Sentinel review of accepted changes, adds Probe/Hone only when situationally needed, then resolves accepted threads via `gh api`.",
+      "description": "Resolve unresolved PR review comments inline. Orchestrator decides accept/reject per thread, applies fixes, runs required artifact-backed Vigil review of accepted changes, then resolves accepted threads via `gh api`.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -331,7 +344,7 @@
       "type": "skill",
       "slug": "dreamers-simplify",
       "name": "dreamers-simplify",
-      "description": "Standalone Hone review (architectural quality / over-engineering / redundancy). Read-only and artifact-backed — may recommend full refactors. Args: --branch, --paths, --all.",
+      "description": "Standalone focused Vigil review for architectural quality / over-engineering / redundancy. Read-only and artifact-backed — may recommend full refactors. Args: --branch, --paths, --all.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -344,7 +357,7 @@
       "type": "skill",
       "slug": "dreamers-test",
       "name": "dreamers-test",
-      "description": "Standalone Probe review (test coverage audit). Read-only and artifact-backed — reports structured findings on AC coverage, layer audit, edge cases, regression risks. Args: --branch, --paths, --all.",
+      "description": "Standalone focused Vigil review for test coverage. Read-only and artifact-backed — reports structured findings on AC coverage, layer audit, edge cases, regression risks. Args: --branch, --paths, --all.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -428,6 +441,10 @@
         },
         {
           "type": "skill",
+          "slug": "dreamers-find-refactors"
+        },
+        {
+          "type": "skill",
           "slug": "dreamers-full"
         },
         {
@@ -498,7 +515,7 @@
       "type": "folder",
       "slug": "dreamers-refs",
       "name": "Dreamers Refs",
-      "description": "Shared reference files used across Dreamers agents and skills (planning protocol, testing mandate, comment rules, git workflow, close-out procedure, orchestrator discipline, etc.).",
+      "description": "Shared reference files used across Dreamers agents and skills (planning protocol, testing mandate, comment rules, architecture rubric, git workflow, close-out procedure, orchestrator discipline, etc.).",
       "sourcePath": "dreamers/refs",
       "destSubpath": "dreamers/refs"
     },
