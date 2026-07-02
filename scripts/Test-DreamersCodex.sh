@@ -277,6 +277,31 @@ for path in scan_files:
         if re.search(pattern, content):
             add_error(f"Stale Copilot/legacy token '{pattern}' remains in {rel}")
 
+tmp_base = root / ".tmp"
+tmp_home = tmp_base / "dreamers-codex-test-sh"
+if tmp_home.exists():
+    import shutil
+    shutil.rmtree(tmp_home)
+try:
+    stale_plan_guide = tmp_home / "dreamers/templates/plan-writing-guide.md"
+    stale_plan_guide.parent.mkdir(parents=True, exist_ok=True)
+    stale_plan_guide.write_text("obsolete managed file\n", encoding="utf-8")
+
+    import subprocess
+    subprocess.run(
+        [str(root / "Install-DreamersCodex.sh"), "--codex-home", str(tmp_home), "--force"],
+        cwd=root,
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if stale_plan_guide.exists():
+        add_error(f"Install smoke did not remove obsolete managed file: {stale_plan_guide}")
+finally:
+    if tmp_home.exists():
+        import shutil
+        shutil.rmtree(tmp_home)
+
 if errors:
     for error in errors:
         print(error, file=sys.stderr)
