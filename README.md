@@ -9,7 +9,7 @@ Dreamers Codex is a Codex-native conversion of the Dreamers orchestration packag
 agents/*.toml                  # Codex-native Dreamers role definitions
 skills/dreamers-*/SKILL.md     # Codex skill entry points
 dreamers/refs/*.md             # shared workflow rules and runtime mapping
-dreamers/templates/*.md        # plan, PR, issue, and project templates
+dreamers/templates/*.md        # plan guides, PR, issue, and project templates
 dreamers/instructions/*.md     # compatibility instruction files
 ```
 
@@ -35,10 +35,10 @@ Explicit user instructions can skip or alter skill phases/actions.
 
 Mention the skill name in a Codex request:
 
-- `dreamers-plan` for interactive planning with proposal review before approval and written-plan coverage review before the review gate.
+- `dreamers-plan` for interactive Grill planning with proposal review before approval, user-overridable lite / standard / complex plan type selection, and written-plan coverage review before the review gate.
 - `dreamers-implement` for one approved plan.
 - `dreamers-review` for artifact-backed full-triad, selected-lens, or single-lens review lanes.
-- `dreamers-full` for the complete pipeline. It accepts a task description, existing plan path(s), or manifest; task mode invokes `dreamers-plan` and uses the plan review / implementation-start gate, while plan path and manifest modes skip planning and the implementation-start gate, then use supplied artifacts directly. It runs one automatic triad review per plan, uses Vigil follow-up review reruns by default, gates extra triad/selected-lane reruns for major changes, and keeps gates inline at plan approval, templated user testing when triggered, and final pre-PR approval.
+- `dreamers-full` for the complete pipeline. It accepts a task description, existing plan path(s), or manifest; task mode invokes `dreamers-plan` for Grill + right-sized plan writing and uses the plan review / implementation-start gate, while plan path and manifest modes skip planning and the implementation-start gate, then use supplied artifacts after plan-quality checks. It runs one automatic triad review per plan, uses Vigil follow-up review reruns by default, gates extra triad/selected-lane reruns for major changes, and keeps gates inline at plan approval, templated user testing when triggered, and final pre-PR approval.
 - `dreamers-lite` for a lean pipeline that accepts a task description or existing plan path(s). Task mode uses one compact plan approval; plan path mode skips planning, plan writing, and implementation-start approval, then uses the supplied plan file(s) directly. Both modes run Vigil artifact review, docs, and PR.
 - `dreamers-find-refactors` for refactor discovery: select lenses, section the repo, run section-scoped Hone audits, synthesize findings, write Dreamers plan files, then stop.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows. `dreamers-pr` also archives shipped Dreamers plan artifacts after PR creation.

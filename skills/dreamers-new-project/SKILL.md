@@ -123,7 +123,7 @@ Then create the project-level `AGENTS.md, CODEX.md, or .github/copilot-instructi
 
 ## Phase 5 — Shell plans
 
-Read `dreamers/templates/shell-plan.md`. For each milestone in the approved brief, create a shell plan in `.dreamers/plans/feature-<slug>/` using plan naming + structure rules from `dreamers/templates/plan-writing-guide.md`.
+Read `dreamers/templates/shell-plan.md` and `dreamers/templates/plan-guide-selector.md`. For each milestone in the approved brief, create a shell plan in `.dreamers/plans/feature-<slug>/` using the smallest selected guide that preserves quality.
 
 After writing all plans, list them in chat with file paths and one-line summaries.
 
@@ -137,4 +137,3 @@ Ask the user with `["Shell plans look good — I'll take it from here", "Revise 
 - `Revise` or `Other` → capture changes, update affected plan files, re-list all plans, re-call the gate. Repeat until the user signs off.
 
 This skill ends when the user is happy with the shell plans. From there the user invokes `dreamers-plan` on a specific milestone (or `dreamers-full` to plan + implement in one session).
-
