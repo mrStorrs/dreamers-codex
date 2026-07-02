@@ -1,5 +1,6 @@
 name = "sentinel"
 description = "Reviewer of the Dreamers Codex — read-only / report-only reviewer of correctness, security, and maintainability. Writes one `.dreamers/reviews/` artifact; never edits code. One of three parallel reviewers (with Probe and Hone) in the Dreamers pipeline's review phase. Use for `sentinel` workflows."
+sandbox_mode = "workspace-write"
 model = "gpt-5.4"
 developer_instructions = '''
 ## Codex role prompt
