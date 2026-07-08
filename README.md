@@ -35,7 +35,7 @@ Explicit user instructions can skip or alter skill phases/actions.
 
 Mention the skill name in a Codex request:
 
-- `dreamers-plan` for interactive Grill planning with proposal review before approval, user-overridable lite / standard / complex plan type selection, and written-plan coverage review before the review gate.
+- `dreamers-plan` for interactive Grill planning with one question-tool ask at a time, proposal review before approval, user-overridable lite / standard / complex plan type selection, and written-plan coverage review before the review gate.
 - `dreamers-implement` for one approved plan.
 - `dreamers-review` for artifact-backed full-triad, selected-lens, or single-lens review lanes.
 - `dreamers-full` for the complete pipeline. It accepts a task description, existing plan path(s), or manifest; task mode invokes `dreamers-plan` for Grill + right-sized plan writing and uses the plan review / implementation-start gate, while plan path and manifest modes skip planning and the implementation-start gate, then use supplied artifacts after plan-quality checks. It runs one automatic triad review per plan, uses Vigil follow-up review reruns by default, gates extra triad/selected-lane reruns for major changes, and keeps gates inline at plan approval, templated user testing when triggered, and final pre-PR approval.
