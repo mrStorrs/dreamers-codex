@@ -17,6 +17,9 @@ $RepoRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
 
 $legacyAgentNames = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel")
 $legacyAgentTomlNames = @("bolt")
+$obsoleteManagedFiles = @(
+    "dreamers/templates/plan-writing-guide.md"
+)
 
 function Remove-DreamersFiles {
     param(
@@ -100,6 +103,22 @@ function Remove-LegacyAgentTomls {
     return $count
 }
 
+function Remove-ObsoleteManagedFiles {
+    $count = 0
+    foreach ($rel in $obsoleteManagedFiles) {
+        $target = Join-Path $CodexHome ($rel -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+        if (-not (Test-Path $target)) { continue }
+        if ($DryRun) {
+            Write-Host "  WOULD REMOVE: $rel -> $target" -ForegroundColor Yellow
+        } else {
+            Remove-Item -LiteralPath $target -Force
+            Write-Host "  REMOVED obsolete managed file: $rel" -ForegroundColor Red
+        }
+        $count++
+    }
+    return $count
+}
+
 $verb = if ($DryRun) { "Dreamers Codex Remover (DRY RUN)" } else { "Dreamers Codex Remover" }
 Write-Host "`n$verb" -ForegroundColor Cyan
 Write-Host "Target: $CodexHome`n"
@@ -125,6 +144,7 @@ foreach ($name in @("refs", "templates", "instructions")) {
 Write-Host "[legacy]" -ForegroundColor Cyan
 $total += Remove-LegacyAgentTomls -TargetDir (Join-Path $CodexHome "agents")
 $total += Remove-LegacyAgentFiles -TargetDir (Join-Path (Join-Path $CodexHome "dreamers") "agents")
+$total += Remove-ObsoleteManagedFiles
 
 $action = if ($DryRun) { "Would remove" } else { "Removed" }
 Write-Host "`n$action $total Dreamers Codex file(s).`n" -ForegroundColor Cyan

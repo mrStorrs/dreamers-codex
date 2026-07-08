@@ -271,7 +271,8 @@ if (-not $SkipInstallSmoke) {
         $legacyAgent = Join-Path $tmpHome "dreamers\agents\echo.md"
         $legacyUser = Join-Path $tmpHome "dreamers\agents\user-owned.md"
         $legacyBolt = Join-Path $tmpHome "agents\bolt.toml"
-        foreach ($path in @($userRef, $userSkill, $legacyAgent, $legacyUser, $legacyBolt)) {
+        $stalePlanGuide = Join-Path $tmpHome "dreamers\templates\plan-writing-guide.md"
+        foreach ($path in @($userRef, $userSkill, $legacyAgent, $legacyUser, $legacyBolt, $stalePlanGuide)) {
             New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
             Set-Content -Path $path -Value "user-owned" -Encoding utf8NoBOM
         }
@@ -283,6 +284,7 @@ if (-not $SkipInstallSmoke) {
         }
         if (Test-Path $legacyAgent) { Add-Error "Install smoke did not remove legacy agent file: $legacyAgent" }
         if (Test-Path $legacyBolt) { Add-Error "Install smoke did not remove legacy bolt agent: $legacyBolt" }
+        if (Test-Path $stalePlanGuide) { Add-Error "Install smoke did not remove obsolete managed file: $stalePlanGuide" }
         if (Test-Path (Join-Path $tmpHome "dreamers\refs\refs")) { Add-Error "Install smoke created nested refs directory" }
         if (Test-Path (Join-Path $tmpHome "skills\dreamers-pr-resolve\dreamers-pr-resolve")) { Add-Error "Install smoke created nested skill directory" }
         if (-not (Test-Path (Join-Path $tmpHome "agents\sentinel.toml"))) { Add-Error "Install smoke did not install agent TOMLs" }

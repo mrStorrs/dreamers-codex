@@ -20,6 +20,9 @@ $RepoRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
 
 $legacyAgentNames = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel")
 $legacyAgentTomlNames = @("bolt")
+$obsoleteManagedFiles = @(
+    "dreamers/templates/plan-writing-guide.md"
+)
 
 function Copy-DreamersFiles {
     param(
@@ -89,6 +92,18 @@ function Remove-LegacyAgentTomls {
     return $count
 }
 
+function Remove-ObsoleteManagedFiles {
+    $count = 0
+    foreach ($rel in $obsoleteManagedFiles) {
+        $target = Join-Path $CodexHome ($rel -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+        if (-not (Test-Path $target)) { continue }
+        Remove-Item -LiteralPath $target -Force
+        Write-Host "  REMOVED obsolete managed file: $rel" -ForegroundColor DarkGray
+        $count++
+    }
+    return $count
+}
+
 Write-Host "`nDreamers Codex Installer" -ForegroundColor Cyan
 Write-Host "Source:  $RepoRoot"
 Write-Host "Target:  $CodexHome`n"
@@ -115,5 +130,6 @@ foreach ($name in @("refs", "templates", "instructions")) {
 Write-Host "[legacy]" -ForegroundColor Cyan
 $legacyRemoved += Remove-LegacyAgentTomls -TargetDir (Join-Path $CodexHome "agents")
 $legacyRemoved += Remove-LegacyAgentFiles -TargetDir (Join-Path (Join-Path $CodexHome "dreamers") "agents")
+$legacyRemoved += Remove-ObsoleteManagedFiles
 
-Write-Host "`nInstalled $total Dreamers Codex file(s); removed $legacyRemoved legacy file(s).`n" -ForegroundColor Cyan
+Write-Host "`nInstalled $total Dreamers Codex file(s); removed $legacyRemoved legacy/obsolete file(s).`n" -ForegroundColor Cyan

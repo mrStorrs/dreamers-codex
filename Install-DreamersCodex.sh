@@ -44,6 +44,9 @@ done
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 legacy_agent_names=(echo forge hone nova probe sage sentinel)
 legacy_agent_toml_names=(bolt)
+obsolete_managed_files=(
+  dreamers/templates/plan-writing-guide.md
+)
 
 copy_dreamers_files() {
   local from="$1"
@@ -123,6 +126,20 @@ remove_legacy_agent_tomls() {
   echo "$count"
 }
 
+remove_obsolete_managed_files() {
+  local count=0
+
+  for rel in "${obsolete_managed_files[@]}"; do
+    local target="$codex_home/$rel"
+    [[ -e "$target" ]] || continue
+    rm -f "$target"
+    printf '  REMOVED obsolete managed file: %s\n' "$rel" >&2
+    count=$((count + 1))
+  done
+
+  echo "$count"
+}
+
 printf '\nDreamers Codex Installer\n'
 printf 'Source:  %s\n' "$repo_root"
 printf 'Target:  %s\n\n' "$codex_home"
@@ -156,5 +173,7 @@ count="$(remove_legacy_agent_tomls "$codex_home/agents")"
 legacy_removed=$((legacy_removed + count))
 count="$(remove_legacy_agent_files "$codex_home/dreamers/agents")"
 legacy_removed=$((legacy_removed + count))
+count="$(remove_obsolete_managed_files)"
+legacy_removed=$((legacy_removed + count))
 
-printf '\nInstalled %s Dreamers Codex file(s); removed %s legacy file(s).\n\n' "$total" "$legacy_removed"
+printf '\nInstalled %s Dreamers Codex file(s); removed %s legacy/obsolete file(s).\n\n' "$total" "$legacy_removed"
