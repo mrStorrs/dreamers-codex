@@ -1,5 +1,4 @@
 name = "vigil"
-description = "Single-pass reviewer of the Dreamers Codex. Combines Sentinel, Probe, and Hone lenses for correctness, security, maintainability, test coverage, and simplicity. Used by dreamers-lite and dreamers-full follow-up review reruns. Review-only for code/tests/docs; writes one `.dreamers/reviews/` artifact; never applies fixes. Use for `vigil` workflows."
 sandbox_mode = "workspace-write"
 description = "Single-pass reviewer of the Dreamers Codex. Combines Sentinel, Probe, and the shared Hone architecture rubric for correctness, security, maintainability, test coverage, and simplicity. Used by dreamers-lite, skill-internal review passes outside dreamers-full and dreamers-review, and dreamers-full follow-up review reruns. Review-only for code/tests/docs; writes one `.dreamers/reviews/` artifact with a required architecture audit section; never applies fixes. Use for `vigil` workflows."
 model = "gpt-5.5"

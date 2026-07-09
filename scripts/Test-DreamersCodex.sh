@@ -38,6 +38,7 @@ from pathlib import Path
 import json
 import re
 import sys
+import tomllib
 
 root = Path(sys.argv[1])
 errors: list[str] = []
@@ -154,6 +155,10 @@ if agent_root.exists():
         if not path.exists():
             continue
         content = path.read_text(encoding="utf-8")
+        try:
+            tomllib.loads(content)
+        except Exception as exc:
+            add_error(f"Invalid agent TOML: {path} ({exc})")
         if not re.search(rf'(?m)^name\s*=\s*"{re.escape(name)}"\s*$', content):
             add_error(f"Agent name does not match basename: {path}")
         if not re.search(r'(?m)^description\s*=\s*".+"\s*$', content):

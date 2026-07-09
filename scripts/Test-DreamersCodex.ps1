@@ -127,6 +127,12 @@ if (Test-Path $agentRoot) {
         $file = Join-Path $agentRoot "$name.toml"
         if (-not (Test-Path $file)) { continue }
         $content = Get-Content -Raw $file
+        $header = ($content -split "(?m)^developer_instructions\s*=", 2)[0]
+        $topLevelKeys = [regex]::Matches($header, "(?m)^([A-Za-z_][A-Za-z0-9_]*)\s*=") | ForEach-Object { $_.Groups[1].Value }
+        $duplicateKeys = $topLevelKeys | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name }
+        foreach ($key in $duplicateKeys) {
+            Add-Error "Duplicate top-level agent TOML key '$key': $file"
+        }
         if ($content -notmatch "(?m)^name\s*=\s*`"$name`"\s*$") {
             Add-Error "Agent name does not match basename: $file"
         }
