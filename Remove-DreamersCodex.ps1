@@ -18,6 +18,7 @@ $RepoRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
 $legacyAgentNames = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel")
 $legacyAgentTomlNames = @("bolt")
 $obsoleteManagedFiles = @(
+    "dreamers/instructions/comment-rules.instructions.md"
     "dreamers/instructions/git.instructions.md"
     "dreamers/templates/plan-writing-guide.md"
 )
