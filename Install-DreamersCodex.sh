@@ -45,6 +45,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 legacy_agent_names=(echo forge hone nova probe sage sentinel)
 legacy_agent_toml_names=(bolt)
 obsolete_managed_files=(
+  dreamers/instructions/comment-rules.instructions.md
   dreamers/instructions/git.instructions.md
   dreamers/templates/plan-writing-guide.md
 )

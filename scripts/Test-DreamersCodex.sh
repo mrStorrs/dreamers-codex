@@ -135,8 +135,9 @@ expected_templates = [
     "user-testing-gate.md",
 ]
 expected_instructions = [
-    "comment-rules.instructions.md",
+    "dreamers.comment-rules.instructions.md",
     "dreamers.instructions.md",
+    "dreamers.laws.md",
 ]
 expected_skill_readmes = [
     "dreamers",
@@ -415,8 +416,12 @@ if tmp_home.exists():
     import shutil
     shutil.rmtree(tmp_home)
 try:
+    user_instruction = tmp_home / "dreamers/instructions/user-owned.md"
+    user_instruction.parent.mkdir(parents=True, exist_ok=True)
+    user_instruction.write_text("preserve\n", encoding="utf-8")
+    stale_comment_rules = tmp_home / "dreamers/instructions/comment-rules.instructions.md"
+    stale_comment_rules.write_text("obsolete managed file\n", encoding="utf-8")
     stale_git_instructions = tmp_home / "dreamers/instructions/git.instructions.md"
-    stale_git_instructions.parent.mkdir(parents=True, exist_ok=True)
     stale_git_instructions.write_text("obsolete managed file\n", encoding="utf-8")
     stale_plan_guide = tmp_home / "dreamers/templates/plan-writing-guide.md"
     stale_plan_guide.parent.mkdir(parents=True, exist_ok=True)
@@ -439,10 +444,21 @@ try:
     )
     if stale_plan_guide.exists():
         add_error(f"Install smoke did not remove obsolete managed file: {stale_plan_guide}")
+    if stale_comment_rules.exists():
+        add_error(f"Install smoke did not remove obsolete managed file: {stale_comment_rules}")
     if stale_git_instructions.exists():
         add_error(f"Install smoke did not remove obsolete managed file: {stale_git_instructions}")
     if not (tmp_home / "skills/dreamers/SKILL.md").exists():
         add_error("Install smoke did not install exact dreamers skill")
+    for managed_instruction in [
+        "dreamers.comment-rules.instructions.md",
+        "dreamers.laws.md",
+    ]:
+        path = tmp_home / "dreamers/instructions" / managed_instruction
+        if not path.exists():
+            add_error(f"Install smoke did not install managed instruction: {path}")
+    if not user_instruction.exists():
+        add_error(f"Install smoke removed user-owned instruction: {user_instruction}")
     for directory in [legacy_lite, legacy_full]:
         for managed in ["SKILL.md", "readme.md"]:
             path = directory / managed

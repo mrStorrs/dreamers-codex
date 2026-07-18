@@ -121,8 +121,9 @@ $expectedTemplates = @(
     "user-testing-gate.md"
 )
 $expectedInstructions = @(
-    "comment-rules.instructions.md",
-    "dreamers.instructions.md"
+    "dreamers.comment-rules.instructions.md",
+    "dreamers.instructions.md",
+    "dreamers.laws.md"
 )
 $expectedSkillReadmes = @(
     "dreamers",
@@ -389,12 +390,14 @@ if (-not $SkipInstallSmoke) {
     try {
         $userRef = Join-Path $tmpHome "dreamers\refs\user-owned.md"
         $userSkill = Join-Path $tmpHome "skills\dreamers-plan\user-owned.md"
+        $userInstruction = Join-Path $tmpHome "dreamers\instructions\user-owned.md"
         $legacyAgent = Join-Path $tmpHome "dreamers\agents\echo.md"
         $legacyUser = Join-Path $tmpHome "dreamers\agents\user-owned.md"
         $legacyBolt = Join-Path $tmpHome "agents\bolt.toml"
+        $staleCommentRules = Join-Path $tmpHome "dreamers\instructions\comment-rules.instructions.md"
         $staleGitInstructions = Join-Path $tmpHome "dreamers\instructions\git.instructions.md"
         $stalePlanGuide = Join-Path $tmpHome "dreamers\templates\plan-writing-guide.md"
-        foreach ($path in @($userRef, $userSkill, $legacyAgent, $legacyUser, $legacyBolt, $staleGitInstructions, $stalePlanGuide)) {
+        foreach ($path in @($userRef, $userSkill, $userInstruction, $legacyAgent, $legacyUser, $legacyBolt, $staleCommentRules, $staleGitInstructions, $stalePlanGuide)) {
             New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
             Set-Content -Path $path -Value "user-owned" -Encoding utf8NoBOM
         }
@@ -409,11 +412,12 @@ if (-not $SkipInstallSmoke) {
 
         & (Join-Path $Root "Install-DreamersCodex.ps1") -CodexHome $tmpHome -Force | Out-Null
 
-        foreach ($path in @($userRef, $userSkill, $legacyUser)) {
+        foreach ($path in @($userRef, $userSkill, $userInstruction, $legacyUser)) {
             if (-not (Test-Path $path)) { Add-Error "Install smoke removed user-owned file: $path" }
         }
         if (Test-Path $legacyAgent) { Add-Error "Install smoke did not remove legacy agent file: $legacyAgent" }
         if (Test-Path $legacyBolt) { Add-Error "Install smoke did not remove legacy bolt agent: $legacyBolt" }
+        if (Test-Path $staleCommentRules) { Add-Error "Install smoke did not remove obsolete managed file: $staleCommentRules" }
         if (Test-Path $staleGitInstructions) { Add-Error "Install smoke did not remove obsolete managed file: $staleGitInstructions" }
         if (Test-Path $stalePlanGuide) { Add-Error "Install smoke did not remove obsolete managed file: $stalePlanGuide" }
         if (Test-Path (Join-Path $tmpHome "dreamers\refs\refs")) { Add-Error "Install smoke created nested refs directory" }
@@ -421,6 +425,12 @@ if (-not $SkipInstallSmoke) {
         if (-not (Test-Path (Join-Path $tmpHome "agents\sentinel.toml"))) { Add-Error "Install smoke did not install agent TOMLs" }
         if (Test-Path (Join-Path $tmpHome "agents\bolt.toml")) { Add-Error "Install smoke installed non-authoritative bolt agent" }
         if (-not (Test-Path (Join-Path $tmpHome "skills\dreamers\SKILL.md"))) { Add-Error "Install smoke did not install exact dreamers skill" }
+        foreach ($path in @(
+            (Join-Path $tmpHome "dreamers\instructions\dreamers.comment-rules.instructions.md"),
+            (Join-Path $tmpHome "dreamers\instructions\dreamers.laws.md")
+        )) {
+            if (-not (Test-Path $path)) { Add-Error "Install smoke missing managed instruction: $path" }
+        }
         foreach ($directory in @($legacyLite, $legacyFull)) {
             foreach ($managed in @("SKILL.md", "readme.md")) {
                 $path = Join-Path $directory $managed
@@ -433,17 +443,25 @@ if (-not $SkipInstallSmoke) {
         New-Item -ItemType Directory -Path $legacyFull -Force | Out-Null
         Set-Content -Path (Join-Path $legacyFull "SKILL.md") -Value "managed" -Encoding utf8NoBOM
         Set-Content -Path (Join-Path $legacyFull "readme.md") -Value "managed" -Encoding utf8NoBOM
+        Set-Content -Path $staleCommentRules -Value "obsolete managed file" -Encoding utf8NoBOM
         Set-Content -Path $staleGitInstructions -Value "obsolete managed file" -Encoding utf8NoBOM
         Set-Content -Path $stalePlanGuide -Value "obsolete managed file" -Encoding utf8NoBOM
 
         & (Join-Path $Root "Remove-DreamersCodex.ps1") -CodexHome $tmpHome | Out-Null
 
-        foreach ($path in @($userRef, $userSkill, $legacyUser)) {
+        foreach ($path in @($userRef, $userSkill, $userInstruction, $legacyUser)) {
             if (-not (Test-Path $path)) { Add-Error "Remove smoke removed user-owned file: $path" }
         }
         if (Test-Path (Join-Path $tmpHome "agents\sentinel.toml")) { Add-Error "Remove smoke left managed agent file behind" }
         if (Test-Path (Join-Path $tmpHome "skills\dreamers-plan\SKILL.md")) { Add-Error "Remove smoke left managed skill file behind" }
         if (Test-Path (Join-Path $tmpHome "skills\dreamers\SKILL.md")) { Add-Error "Remove smoke left exact dreamers skill behind" }
+        foreach ($path in @(
+            (Join-Path $tmpHome "dreamers\instructions\dreamers.comment-rules.instructions.md"),
+            (Join-Path $tmpHome "dreamers\instructions\dreamers.laws.md")
+        )) {
+            if (Test-Path $path) { Add-Error "Remove smoke left managed instruction behind: $path" }
+        }
+        if (Test-Path $staleCommentRules) { Add-Error "Remove smoke left obsolete managed file behind: $staleCommentRules" }
         if (Test-Path $staleGitInstructions) { Add-Error "Remove smoke left obsolete managed file behind: $staleGitInstructions" }
         if (Test-Path $stalePlanGuide) { Add-Error "Remove smoke left obsolete managed file behind: $stalePlanGuide" }
         if (-not (Test-Path (Join-Path $legacyLite "user-owned.md"))) { Add-Error "Remove smoke removed user-owned legacy file: $legacyLite" }
