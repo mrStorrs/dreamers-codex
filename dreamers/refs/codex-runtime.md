@@ -4,7 +4,7 @@ Use this reference when executing Dreamers skills that were converted from the C
 
 ## Inputs
 - Treat the user's prompt as the skill input. Former slash commands such as `dreamers-plan` are now Codex skill names such as `dreamers-plan`.
-- If a skill names another Dreamers skill, use that skill when it is available. If it is not available, execute the named steps inline.
+- If a skill names another Dreamers skill, invoke it in the same orchestrator context when it is available. The outermost skill keeps ownership of progress and end-to-end state. If the named skill is unavailable, execute its named phase inline.
 
 ## Resource Resolution
 Resolve Dreamers shared files in this order:
@@ -14,7 +14,7 @@ Resolve Dreamers shared files in this order:
 
 Dreamers role definitions are Codex agents. Resolve them from plugin-local `../agents/*.toml` or direct-install `$CODEX_HOME/agents/*.toml` / `~/.codex/agents/*.toml`. Do not deploy or resolve role definitions from `$CODEX_HOME/dreamers/agents`.
 
-Project instructions may live in `AGENTS.md`, `CODEX.md`, `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md`, or project-specific docs. Read whichever exist and let more local project instructions override general Dreamers defaults.
+Project instructions may live in `AGENTS.md`, `CODEX.md`, `.github/copilot-instructions.md`, or project-specific docs. Read whichever exist and let more local project instructions override general Dreamers defaults.
 
 ## User Gates
 - A gate is mandatory when the skill asks for approval, ship strategy, major-refactor disposition, user testing, PR approval, or continuation.
@@ -27,8 +27,9 @@ Project instructions may live in `AGENTS.md`, `CODEX.md`, `AGENTS.md`, `CODEX.md
 
 ## Delegation
 - Use `tool_search` to discover `multi_agent_v1` if multi-agent tools are not visible.
-- Use `multi_agent_v1.spawn_agent` only when the user invoked a Dreamers workflow that explicitly includes delegated reviewer, documentarian, or researcher roles, such as `dreamers-review`, `dreamers-docs`, `dreamers-research`, or `dreamers-full`.
+- Use `multi_agent_v1.spawn_agent` only when the user invoked a Dreamers workflow that explicitly includes delegated reviewer, documentarian, or researcher roles, such as `dreamers-review`, `dreamers-docs`, `dreamers-research`, or `dreamers`.
 - Spawn by Codex `agent_type` using the Dreamers role name (`sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `forge`, or `nova`). Put the workflow-specific context in `message`; do not paste or load Markdown role prompt files.
+- For a multi-reviewer lane, launch every selected reviewer concurrently before waiting for results. Never spawn and await reviewers sequentially.
 - If multi-agent tools are unavailable, run the requested lens inline and label the output with the role name.
 
 ## Tool Translation

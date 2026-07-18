@@ -45,8 +45,10 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 legacy_agent_names=(echo forge hone nova probe sage sentinel)
 legacy_agent_toml_names=(bolt)
 obsolete_managed_files=(
+  dreamers/instructions/git.instructions.md
   dreamers/templates/plan-writing-guide.md
 )
+legacy_skill_names=(dreamers-lite dreamers-full)
 
 copy_dreamers_files() {
   local from="$1"
@@ -140,6 +142,28 @@ remove_obsolete_managed_files() {
   echo "$count"
 }
 
+remove_legacy_skill_files() {
+  local target_root="$1"
+  local count=0
+
+  for skill_name in "${legacy_skill_names[@]}"; do
+    local target_dir="$target_root/$skill_name"
+    for file_name in SKILL.md readme.md; do
+      local target="$target_dir/$file_name"
+      [[ -e "$target" ]] || continue
+      rm -f "$target"
+      printf '  REMOVED legacy managed file: skills/%s/%s\n' "$skill_name" "$file_name" >&2
+      count=$((count + 1))
+    done
+    if [[ -d "$target_dir" ]] && ! find "$target_dir" -mindepth 1 -print -quit | grep -q .; then
+      rmdir "$target_dir"
+      printf '  REMOVED empty legacy dir: skills/%s\n' "$skill_name" >&2
+    fi
+  done
+
+  echo "$count"
+}
+
 printf '\nDreamers Codex Installer\n'
 printf 'Source:  %s\n' "$repo_root"
 printf 'Target:  %s\n\n' "$codex_home"
@@ -155,7 +179,7 @@ printf '[skills]\n'
 if [[ -d "$repo_root/skills" ]]; then
   while IFS= read -r -d '' skill_dir; do
     skill_name="$(basename "$skill_dir")"
-    if [[ "$skill_name" == dreamers-* ]]; then
+    if [[ "$skill_name" == "dreamers" || "$skill_name" == dreamers-* ]]; then
       count="$(copy_dreamers_files "$skill_dir" "$codex_home/skills/$skill_name" "skills/$skill_name")"
       total=$((total + count))
     fi
@@ -169,6 +193,8 @@ for name in refs templates instructions; do
 done
 
 printf '[legacy]\n'
+count="$(remove_legacy_skill_files "$codex_home/skills")"
+legacy_removed=$((legacy_removed + count))
 count="$(remove_legacy_agent_tomls "$codex_home/agents")"
 legacy_removed=$((legacy_removed + count))
 count="$(remove_legacy_agent_files "$codex_home/dreamers/agents")"

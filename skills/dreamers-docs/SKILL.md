@@ -9,7 +9,7 @@ Before executing this skill, apply the Codex runtime mapping from `../dreamers/r
 Skill input: use the user's message, including any paths or flags.
 
 ## Codex todo - Before you begin
-- Call `update_plan` with a todo list marking all steps at entry: Step 1 / Step 2 / Step 3.
+- When standalone, call `update_plan` with a todo list for Step 1 / Step 2 / Step 3. When invoked by an outer delivery skill, complete these steps under its existing plan.
 
 ## Step 1 — Resolve diff scope
 - `--branch` (default): scope = `git diff --name-only origin/$DEFAULT...HEAD`.

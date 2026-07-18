@@ -62,8 +62,29 @@ def assert_path(path: Path, label: str) -> None:
         add_error(f"Missing {label}: {path}")
 
 
+def assert_patterns(path: Path, patterns: dict[str, str]) -> None:
+    if not path.exists():
+        add_error(f"Missing contract file: {path}")
+        return
+    content = path.read_text(encoding="utf-8")
+    for label, pattern in patterns.items():
+        if not re.search(pattern, content, re.IGNORECASE | re.MULTILINE | re.DOTALL):
+            add_error(f"Missing {label} contract in {path}")
+
+
+def assert_no_patterns(path: Path, patterns: dict[str, str]) -> None:
+    if not path.exists():
+        add_error(f"Missing contract file: {path}")
+        return
+    content = path.read_text(encoding="utf-8")
+    for label, pattern in patterns.items():
+        if re.search(pattern, content, re.IGNORECASE | re.MULTILINE | re.DOTALL):
+            add_error(f"Unexpected {label} contract in {path}")
+
+
 expected_agents = ["echo", "forge", "hone", "nova", "probe", "sage", "sentinel", "vigil"]
 expected_skills = [
+    "dreamers",
     "dreamers-add-logging",
     "dreamers-clean-work",
     "dreamers-cleanup-comments",
@@ -71,8 +92,6 @@ expected_skills = [
     "dreamers-docs",
     "dreamers-fix",
     "dreamers-find-refactors",
-    "dreamers-full",
-    "dreamers-lite",
     "dreamers-implement",
     "dreamers-issue",
     "dreamers-new-project",
@@ -118,16 +137,14 @@ expected_templates = [
 expected_instructions = [
     "comment-rules.instructions.md",
     "dreamers.instructions.md",
-    "git.instructions.md",
 ]
 expected_skill_readmes = [
+    "dreamers",
     "dreamers-add-logging",
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
     "dreamers-fix",
     "dreamers-find-refactors",
-    "dreamers-full",
-    "dreamers-lite",
     "dreamers-implement",
     "dreamers-new-project",
     "dreamers-plan",
@@ -165,6 +182,10 @@ if agent_root.exists():
             add_error(f"Agent missing non-empty description: {path}")
         if not re.search(r"(?s)developer_instructions\s*=\s*'''(.+)'''", content):
             add_error(f"Agent missing developer_instructions literal block: {path}")
+        if name in {"sentinel", "probe", "hone", "vigil"} and re.search(
+            r"(?m)^model(?:_reasoning_effort)?\s*=", content
+        ):
+            add_error(f"Reviewer agent pins model configuration: {path}")
 
 if skill_root.exists():
     actual_skills = [path.name for path in skill_root.iterdir() if path.is_dir()]
@@ -208,6 +229,12 @@ catalog_path = root / ".github/catalog.json"
 if catalog_path.exists():
     try:
         catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        items = {f"{item.get('type')}:{item.get('slug')}" for item in catalog.get("items", [])}
+        if "skill:dreamers" not in items:
+            add_error("Catalog missing item: skill:dreamers")
+        for retired in ["skill:dreamers-full", "skill:dreamers-lite"]:
+            if retired in items:
+                add_error(f"Catalog retains retired item: {retired}")
         for item in catalog.get("items", []):
             item_path = item.get("path")
             if not item_path:
@@ -221,6 +248,15 @@ if catalog_path.exists():
             readme_path = collection.get("readmePath")
             if readme_path and not (root / readme_path).exists():
                 add_error(f"Catalog readmePath does not exist: {readme_path}")
+            members = {
+                f"{member.get('type')}:{member.get('slug')}"
+                for member in collection.get("members", [])
+            }
+            if "skill:dreamers" not in members:
+                add_error("Collection missing member: skill:dreamers")
+            for retired in ["skill:dreamers-full", "skill:dreamers-lite"]:
+                if retired in members:
+                    add_error(f"Collection retains retired member: {retired}")
         for folder in catalog.get("folderTargets", []):
             source_path = folder.get("sourcePath")
             if not source_path:
@@ -232,6 +268,75 @@ if catalog_path.exists():
                 add_error(f"Catalog folder sourcePath does not exist: {source_path}")
     except Exception as exc:
         add_error(f"Unable to validate catalog paths: {exc}")
+
+assert_patterns(
+    skill_root / "dreamers/SKILL.md",
+    {
+        "missing-input halt": r"If no task description, plan path, or manifest was provided, halt \+ ask",
+        "three input modes": r"## Modes.*Task description.*Plan path\(s\).*manifest\.md",
+        "planning delegation": r"## Phase 1.*Invoke `dreamers-plan`",
+        "implementation then review": r"### Steps 1.3.*Invoke `dreamers-implement.*### Step 4.*Invoke `dreamers-review",
+        "complexity-selected review": r"selects Vigil, Sentinel \+ Probe, or Sentinel \+ Probe \+ Hone from plan complexity or explicit plan/user direction",
+        "major-refactor gate": r"Major-refactor gate.*Apply now.*Defer — create follow-up plan.*Other",
+        "major-change rerun gate": r"Run Vigil.*Run full triad.*Run selected dreamers-review lane.*Skip reviewer rerun.*Other",
+        "templated user testing": r"user-testing-gate\.md.*Testing steps.*Notes.*Approved.*Bug found \(enter text\).*Other \(enter text\)",
+        "full close-out": r"Phase 3.*improvements\.md.*dreamers-docs --branch.*Write retro.*Final commit.*User approval gate.*dreamers-pr",
+    },
+)
+assert_no_patterns(
+    skill_root / "dreamers/SKILL.md",
+    {
+        "retired pipeline name": r"dreamers-(?:full|lite)",
+        "help route": r"--help|dreamers-help",
+        "Grill opt-out": r"--no-grill|do not grill|skip the interview",
+        "inline implementation refs": r"<(?:planning-grill|testing-mandate|comment-rules|logging-discipline|reviewer-findings-format|agent-recovery)>",
+    },
+)
+assert_patterns(
+    skill_root / "dreamers-implement/SKILL.md",
+    {
+        "tests-first implementation": r"failing tests.*implement|tests.first",
+        "green exit": r"Return the AC coverage matrix at green tests.*invokes `dreamers-review` immediately",
+        "phase boundary": r"Do not invoke reviewers.*user testing.*commit.*push.*PR creation",
+        "conditional plan ownership": r"When standalone.*update_plan.*When invoked by an outer delivery skill.*existing plan",
+    },
+)
+assert_patterns(
+    skill_root / "dreamers-review/SKILL.md",
+    {
+        "Vigil mode": r"--vigil.*Vigil|Vigil.*--vigil",
+        "full mode": r"--full.*Sentinel \+ Probe \+ Hone",
+        "selection precedence": r"explicit lane flag or explicit user direction.*explicit reviewer requirement.*Plan-type",
+        "lite selection": r"lite` = Vigil",
+        "standard selection": r"standard` = Sentinel \+ Probe",
+        "complex selection": r"complex` = Sentinel \+ Probe \+ Hone",
+        "parallel spawning": r"launch every selected reviewer concurrently.*Never spawn or await reviewers sequentially",
+        "caller owns fix loop": r"caller owns all finding disposition, gates, fixes, revalidation, and user testing",
+        "artifact-only reviewer writes": r"sole write is exactly one.*artifact",
+    },
+)
+assert_patterns(
+    dreamers_root / "instructions/dreamers.instructions.md",
+    {
+        "same-context skill invocation": r"skill.*same orchestrator context|same orchestrator context.*skill",
+        "outermost plan ownership": r"outermost skill.*owns.*(?:todo|plan)|(?:todo|plan).*owned by.*outermost skill",
+    },
+)
+assert_patterns(
+    dreamers_root / "refs/codex-runtime.md",
+    {
+        "same-context composition": r"invoke it in the same orchestrator context",
+        "parallel reviewer runtime": r"launch every selected reviewer concurrently.*Never spawn and await reviewers sequentially",
+    },
+)
+assert_no_patterns(
+    skill_root / "dreamers-update/SKILL.md",
+    {"implementation mirror rule": r"dreamers-implement mirror"},
+)
+assert_patterns(
+    root / ".codex-plugin/plugin.json",
+    {"unified default prompt": r"Use dreamers to plan and ship"},
+)
 
 scan_roots = [
     root / "agents",
@@ -282,15 +387,47 @@ for path in scan_files:
         if re.search(pattern, content):
             add_error(f"Stale Copilot/legacy token '{pattern}' remains in {rel}")
 
+legacy_pattern = re.compile(r"dreamers-(full|lite)", re.IGNORECASE)
+migration_pattern = re.compile(
+    r"retir|remov|legacy|migrat|cleanup|clean up|previous|old command|no longer",
+    re.IGNORECASE,
+)
+for path in [agent_root, skill_root, dreamers_root, root / "README.md", catalog_path, root / ".codex-plugin/plugin.json"]:
+    if not path.exists():
+        continue
+    files = (
+        [child for child in path.rglob("*") if child.is_file()]
+        if path.is_dir()
+        else [path]
+    )
+    for file in files:
+        if file.name.startswith("Test-DreamersCodex"):
+            continue
+        for line_number, line in enumerate(
+            file.read_text(encoding="utf-8", errors="ignore").splitlines(), start=1
+        ):
+            if legacy_pattern.search(line) and not migration_pattern.search(line):
+                add_error(f"Active retired-pipeline reference in {file}:{line_number}")
+
 tmp_base = root / ".tmp"
 tmp_home = tmp_base / "dreamers-codex-test-sh"
 if tmp_home.exists():
     import shutil
     shutil.rmtree(tmp_home)
 try:
+    stale_git_instructions = tmp_home / "dreamers/instructions/git.instructions.md"
+    stale_git_instructions.parent.mkdir(parents=True, exist_ok=True)
+    stale_git_instructions.write_text("obsolete managed file\n", encoding="utf-8")
     stale_plan_guide = tmp_home / "dreamers/templates/plan-writing-guide.md"
     stale_plan_guide.parent.mkdir(parents=True, exist_ok=True)
     stale_plan_guide.write_text("obsolete managed file\n", encoding="utf-8")
+    legacy_lite = tmp_home / "skills/dreamers-lite"
+    legacy_full = tmp_home / "skills/dreamers-full"
+    for directory in [legacy_lite, legacy_full]:
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "SKILL.md").write_text("managed\n", encoding="utf-8")
+        (directory / "readme.md").write_text("managed\n", encoding="utf-8")
+    (legacy_lite / "user-owned.md").write_text("preserve\n", encoding="utf-8")
 
     import subprocess
     subprocess.run(
@@ -302,6 +439,19 @@ try:
     )
     if stale_plan_guide.exists():
         add_error(f"Install smoke did not remove obsolete managed file: {stale_plan_guide}")
+    if stale_git_instructions.exists():
+        add_error(f"Install smoke did not remove obsolete managed file: {stale_git_instructions}")
+    if not (tmp_home / "skills/dreamers/SKILL.md").exists():
+        add_error("Install smoke did not install exact dreamers skill")
+    for directory in [legacy_lite, legacy_full]:
+        for managed in ["SKILL.md", "readme.md"]:
+            path = directory / managed
+            if path.exists():
+                add_error(f"Install smoke retained legacy managed file: {path}")
+    if not (legacy_lite / "user-owned.md").exists():
+        add_error(f"Install smoke removed user-owned legacy file: {legacy_lite}")
+    if legacy_full.exists():
+        add_error(f"Install smoke did not prune empty legacy directory: {legacy_full}")
 finally:
     if tmp_home.exists():
         import shutil
