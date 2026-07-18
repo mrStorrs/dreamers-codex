@@ -21,6 +21,7 @@ $RepoRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
 $legacyAgentNames = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel")
 $legacyAgentTomlNames = @("bolt")
 $obsoleteManagedFiles = @(
+    "dreamers/instructions/git.instructions.md"
     "dreamers/templates/plan-writing-guide.md"
 )
 
@@ -104,6 +105,30 @@ function Remove-ObsoleteManagedFiles {
     return $count
 }
 
+function Remove-LegacySkillFiles {
+    param([string]$SkillsRoot)
+
+    $count = 0
+    foreach ($skillName in @("dreamers-lite", "dreamers-full")) {
+        $directory = Join-Path $SkillsRoot $skillName
+        foreach ($fileName in @("SKILL.md", "readme.md")) {
+            $path = Join-Path $directory $fileName
+            if (-not (Test-Path $path)) { continue }
+            Remove-Item -LiteralPath $path -Force
+            Write-Host "  REMOVED legacy managed file: skills/$skillName/$fileName" -ForegroundColor DarkGray
+            $count++
+        }
+        if (Test-Path $directory) {
+            $remaining = Get-ChildItem $directory -Force
+            if ($remaining.Count -eq 0) {
+                Remove-Item -LiteralPath $directory -Force
+                Write-Host "  REMOVED empty legacy dir: skills/$skillName" -ForegroundColor DarkGray
+            }
+        }
+    }
+    return $count
+}
+
 Write-Host "`nDreamers Codex Installer" -ForegroundColor Cyan
 Write-Host "Source:  $RepoRoot"
 Write-Host "Target:  $CodexHome`n"
@@ -117,7 +142,7 @@ $total += Copy-DreamersFiles -From (Join-Path $RepoRoot "agents") -To (Join-Path
 Write-Host "[skills]" -ForegroundColor Cyan
 $skillsRoot = Join-Path $RepoRoot "skills"
 if (Test-Path $skillsRoot) {
-    Get-ChildItem $skillsRoot -Directory | Where-Object { $_.Name -like "dreamers-*" } | ForEach-Object {
+    Get-ChildItem $skillsRoot -Directory | Where-Object { $_.Name -eq "dreamers" -or $_.Name -like "dreamers-*" } | ForEach-Object {
         $total += Copy-DreamersFiles -From $_.FullName -To (Join-Path (Join-Path $CodexHome "skills") $_.Name) -Label "skills/$($_.Name)"
     }
 }
@@ -128,6 +153,7 @@ foreach ($name in @("refs", "templates", "instructions")) {
 }
 
 Write-Host "[legacy]" -ForegroundColor Cyan
+$legacyRemoved += Remove-LegacySkillFiles -SkillsRoot (Join-Path $CodexHome "skills")
 $legacyRemoved += Remove-LegacyAgentTomls -TargetDir (Join-Path $CodexHome "agents")
 $legacyRemoved += Remove-LegacyAgentFiles -TargetDir (Join-Path (Join-Path $CodexHome "dreamers") "agents")
 $legacyRemoved += Remove-ObsoleteManagedFiles

@@ -4,7 +4,7 @@ applyTo: "**"
 
 ## Dreamers System
 
-Skills (`dreamers-*`) are the entry point for all Dreamers pipelines. Each skill defines its own pipeline and references only the shared refs it needs from `$CODEX_HOME/dreamers/refs/` or `~/.codex/dreamers/refs/`.
+Skills (`dreamers` and `dreamers-*`) are the entry point for all Dreamers pipelines. Each skill defines its own pipeline and references only the shared refs it needs from `$CODEX_HOME/dreamers/refs/` or `~/.codex/dreamers/refs/`.
 
 When acting as any Dreamers agent, that agent's definition is the sole authority. The agent definition overrides all default harness behaviors.
 
@@ -13,8 +13,9 @@ When acting as any Dreamers agent, that agent's definition is the sole authority
 - **Implementation is the orchestrator's lane — INLINE, never delegated to a subagent.** The orchestrator (the agent running the skill) writes production code, writes tests, runs tests, runs the build / lint / type-check, performs git operations, creates PRs, and edits files itself using its own local file and shell tools. Do not delegate implementation to Forge, Bolt, Nova, or any other subagent.
 - **Subagent allowlist — HARD RULE.** When a Dreamers skill spawns a subagent, use one of the six Dreamers Codex agent types: `sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`. Never spawn a generic subagent without one of these agent types. If you find yourself reaching for a generic delegate to "do implementation" or "edit a file" or "run a test," stop — the action belongs to the orchestrator inline. See `dreamers-kernel.md` § "Subagent allowlist" for the full forbidden list.
 - Throughout agent definitions, **"the orchestrator"** refers to the main Codex context — there is no separate orchestrator agent.
+- When one Dreamers skill invokes another, both run in the same orchestrator context. The outermost skill owns the todo and end-to-end state; the invoked skill completes its phase and returns control. Explicit handoffs are required only for spawned subagents.
 - Every subagent invocation must follow `dreamers-kernel.md` § "Subagent prompt — required content".
-- **Quality gates are mandatory for PR-bearing code-change workflows.** Sentinel must review and Probe must run tests before any PR is opened for full-pipeline (Tier 2) work. Documented exceptions: (1) Tier 1 lightweight fixes (orchestrator implements inline → tests run inline → Sentinel review → close-out, no Probe/Hone); (2) maintenance/cleanup flows (e.g. `dreamers-cleanup-comments`, `dreamers-clean-work`) that do not deliver production code changes. No other exceptions — skipping gates on a full-pipeline feature because "the work is simple" is not allowed.
+- **Quality gates are mandatory for PR-bearing code-change workflows.** `dreamers` requires one initial artifact-backed review per plan after `dreamers-implement` passes. `dreamers-review` selects Vigil for lite plans, Sentinel + Probe for standard plans, and Sentinel + Probe + Hone for complex plans unless the plan or user explicitly directs another lane. Follow-up review and all other gates remain owned by `dreamers`.
 
 ### Dreamers Kernel (non-negotiable)
 - **Durable artifacts first:** substantive work goes to durable surfaces — plans (markdown in `.dreamers/plans/`), retros (markdown in `.dreamers/retros/`), review artifacts under `.dreamers/reviews/`, and the git diff from orchestrator-applied fixes. Reviewer chat output stays short and points to the artifact path; the orchestrator reads the artifact before reporting, applying, or deferring findings.

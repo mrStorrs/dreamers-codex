@@ -18,6 +18,7 @@ $RepoRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
 $legacyAgentNames = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel")
 $legacyAgentTomlNames = @("bolt")
 $obsoleteManagedFiles = @(
+    "dreamers/instructions/git.instructions.md"
     "dreamers/templates/plan-writing-guide.md"
 )
 
@@ -119,6 +120,34 @@ function Remove-ObsoleteManagedFiles {
     return $count
 }
 
+function Remove-LegacySkillFiles {
+    param([string]$SkillsRoot)
+
+    $count = 0
+    foreach ($skillName in @("dreamers-lite", "dreamers-full")) {
+        $directory = Join-Path $SkillsRoot $skillName
+        foreach ($fileName in @("SKILL.md", "readme.md")) {
+            $path = Join-Path $directory $fileName
+            if (-not (Test-Path $path)) { continue }
+            if ($DryRun) {
+                Write-Host "  WOULD REMOVE: skills/$skillName/$fileName -> $path" -ForegroundColor Yellow
+            } else {
+                Remove-Item -LiteralPath $path -Force
+                Write-Host "  REMOVED legacy managed file: skills/$skillName/$fileName" -ForegroundColor Red
+            }
+            $count++
+        }
+        if (-not $DryRun -and (Test-Path $directory)) {
+            $remaining = Get-ChildItem $directory -Force
+            if ($remaining.Count -eq 0) {
+                Remove-Item -LiteralPath $directory -Force
+                Write-Host "  REMOVED empty legacy dir: skills/$skillName" -ForegroundColor DarkGray
+            }
+        }
+    }
+    return $count
+}
+
 $verb = if ($DryRun) { "Dreamers Codex Remover (DRY RUN)" } else { "Dreamers Codex Remover" }
 Write-Host "`n$verb" -ForegroundColor Cyan
 Write-Host "Target: $CodexHome`n"
@@ -131,7 +160,7 @@ $total += Remove-DreamersFiles -SourceDir (Join-Path $RepoRoot "agents") -Target
 Write-Host "[skills]" -ForegroundColor Cyan
 $skillsRoot = Join-Path $RepoRoot "skills"
 if (Test-Path $skillsRoot) {
-    Get-ChildItem $skillsRoot -Directory | Where-Object { $_.Name -like "dreamers-*" } | ForEach-Object {
+    Get-ChildItem $skillsRoot -Directory | Where-Object { $_.Name -eq "dreamers" -or $_.Name -like "dreamers-*" } | ForEach-Object {
         $total += Remove-DreamersFiles -SourceDir $_.FullName -TargetDir (Join-Path (Join-Path $CodexHome "skills") $_.Name) -Label "skills/$($_.Name)"
     }
 }
@@ -142,6 +171,7 @@ foreach ($name in @("refs", "templates", "instructions")) {
 }
 
 Write-Host "[legacy]" -ForegroundColor Cyan
+$total += Remove-LegacySkillFiles -SkillsRoot (Join-Path $CodexHome "skills")
 $total += Remove-LegacyAgentTomls -TargetDir (Join-Path $CodexHome "agents")
 $total += Remove-LegacyAgentFiles -TargetDir (Join-Path (Join-Path $CodexHome "dreamers") "agents")
 $total += Remove-ObsoleteManagedFiles

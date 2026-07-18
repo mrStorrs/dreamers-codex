@@ -1,4 +1,4 @@
-name: verify-refs
+name: verify-dreamers-package
 
 on:
   pull_request:
@@ -6,8 +6,13 @@ on:
       - 'agents/**/*.toml'
       - 'dreamers/**/*.md'
       - 'skills/**/*.md'
-      - 'scripts/sync-refs.sh'
-      - 'scripts/Test-DreamersCodex.sh'
+      - '.codex-plugin/plugin.json'
+      - '.github/catalog.json'
+      - 'README.md'
+      - 'Install-DreamersCodex.sh'
+      - 'Install-DreamersCodex.ps1'
+      - 'Remove-DreamersCodex.ps1'
+      - 'scripts/**'
       - '.github/workflows/verify-refs.yml'
   push:
     branches: [main]
@@ -15,8 +20,13 @@ on:
       - 'agents/**/*.toml'
       - 'dreamers/**/*.md'
       - 'skills/**/*.md'
-      - 'scripts/sync-refs.sh'
-      - 'scripts/Test-DreamersCodex.sh'
+      - '.codex-plugin/plugin.json'
+      - '.github/catalog.json'
+      - 'README.md'
+      - 'Install-DreamersCodex.sh'
+      - 'Install-DreamersCodex.ps1'
+      - 'Remove-DreamersCodex.ps1'
+      - 'scripts/**'
       - '.github/workflows/verify-refs.yml'
   workflow_dispatch:
 
@@ -25,6 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
-      - name: Validate Dreamers Codex package
+      - name: Validate Dreamers Codex package with Bash
         shell: bash
         run: scripts/Test-DreamersCodex.sh
+      - name: Validate Dreamers Codex package and migration with PowerShell
+        shell: pwsh
+        run: ./scripts/Test-DreamersCodex.ps1

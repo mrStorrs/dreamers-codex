@@ -1,6 +1,6 @@
 ---
 name: dreamers-implement
-description: "Implementation skill — runs one cycle against an approved plan. Writes failing tests, implements, runs tests, invokes dreamers-review (triad + apply findings), user-testing gate if required, commits. Does NOT push or open a PR. Use when the user asks for dreamers-implement, implement this plan, execute the plan."
+description: "Implementation skill — runs one cycle against an approved plan. Writes failing tests, implements, runs tests, and exits at green tests with an AC coverage matrix. Does NOT review, push, or open a PR. Use when the user asks for dreamers-implement, implement this plan, execute the plan."
 ---
 
 ## Codex runtime
@@ -11,7 +11,7 @@ Skill input: use the user's message, including any paths or flags.
 If no plan path was provided, halt + ask. Do not invent a plan.
 
 ## Codex todo - Before you begin 
-- Call `update_plan` with a todo list marking all steps. at entry: Step 1 / Step 2 / Step 3 / Step 4 / Step 5 (review) / Step 6 (user test) / Step 7 (commit).
+- When standalone, call `update_plan` with a todo list for Step 1 / Step 2 / Step 3. When invoked by an outer delivery skill, complete these steps under its existing plan.
 
 ## Step 1 — Read plan + write failing tests
 - Read the plan file. For each AC (G/W/T + `*Layer: ...*`), write at least one failing test at the annotated layer. Stage with `git add`. Don't run yet.
@@ -24,7 +24,8 @@ If no plan path was provided, halt + ask. Do not invent a plan.
 - Update `./test-benchmarks.md` row after passing (if the project uses one).
 
 ## Exit
--  AC coverage matrix, review summary. Next step: `dreamers-review` if last cycle, otherwise another `dreamers-implement` for next plan (or `dreamers-full` for the wrapper).
+- Return the AC coverage matrix at green tests. `dreamers` invokes `dreamers-review` immediately after a successful implementation.
+- Do not invoke reviewers or perform review-finding fixes, user testing, commit, push, or PR creation.
 
 ## Dreamers Kernel
 <dreamers-kernel>
@@ -102,8 +103,7 @@ If the user approves a post-PR commit, push with `git push` (no force). The PR w
 ## Commit structure (one commit per cycle)
 - Exactly **one** commit per plan/cycle, immediately after the reviewer findings have been applied and tests are green (and user testing, if required, is signed off).
 - The orchestrator stages changes with `git add` throughout the cycle but does **not** run `git commit` until the cycle ends.
-- Commit message format follows `.github/instructions/git.instructions.md` (if present). Pipeline-specific bits:
-  - Subject: `feat: <plan-name>` (or `feat!: <plan-name>` for breaking changes — see git.instructions.md for the breaking-change footer rule)
+- Commit message subject: `feat: <plan-name>` (or `feat!: <plan-name>` for breaking changes).
 
 One commit per plan keeps each plan's contribution atomic. Reviewer-fix application is part of the same cycle (not separate commits).
 
@@ -165,7 +165,7 @@ If a layer cannot be covered automatically (e.g., camera permission flows), flag
 
 ## Probe's layer audit (consumes the new format)
 
-In `dreamers-implement` Step 4 (coverage sweep) and Step 5 (parallel review with Probe), the layer audit reads each AC's `*Layer: ...*` annotation to verify coverage at each layer was implemented. Probe blocks the cycle if any AC's annotated layer lacks a corresponding green test.
+During the selected review lane when it includes Probe, the layer audit reads each AC's `*Layer: ...*` annotation to verify coverage at each layer was implemented. Probe blocks the cycle if any AC's annotated layer lacks a corresponding green test.
 
 ## Test benchmarks
 
