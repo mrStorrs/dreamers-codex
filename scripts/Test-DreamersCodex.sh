@@ -317,6 +317,15 @@ assert_patterns(
     },
 )
 assert_patterns(
+    skill_root / "dreamers-new-project/SKILL.md",
+    {
+        "existing-solutions opt-in gate": r"Phase 1\.5.*ask the user.*Research similar existing solutions.*Skip research",
+        "research blocked before approval": r"Do not perform research before the user explicitly approves it",
+        "research remains conversation-only": r"Keep this phase conversation-only: no subagent and no disk writes",
+        "research informs downstream artifacts": r"existing-solutions research.*stack recommendation.*project brief",
+    },
+)
+assert_patterns(
     dreamers_root / "instructions/dreamers.instructions.md",
     {
         "same-context skill invocation": r"skill.*same orchestrator context|same orchestrator context.*skill",
