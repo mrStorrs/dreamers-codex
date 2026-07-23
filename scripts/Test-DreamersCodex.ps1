@@ -304,6 +304,12 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-review/SKILL.md") @{
     "caller owns fix loop" = 'caller owns all finding disposition, gates, fixes, revalidation, and user testing'
     "artifact-only reviewer writes" = '(?s)sole write is exactly one.*artifact'
 }
+Assert-Patterns (Join-Path $skillRoot "dreamers-new-project/SKILL.md") @{
+    "existing-solutions opt-in gate" = '(?s)Phase 1\.5.*ask the user.*Research similar existing solutions.*Skip research'
+    "research blocked before approval" = 'Do not perform research before the user explicitly approves it'
+    "research remains conversation-only" = 'Keep this phase conversation-only: no subagent and no disk writes'
+    "research informs downstream artifacts" = '(?s)existing-solutions research.*stack recommendation.*project brief'
+}
 Assert-Patterns (Join-Path $dreamersRoot "instructions/dreamers.instructions.md") @{
     "same-context skill invocation" = '(?s)skill.*same orchestrator context|same orchestrator context.*skill'
     "outermost plan ownership" = '(?s)outermost skill.*owns.*(?:todo|plan)|(?:todo|plan).*owned by.*outermost skill'
