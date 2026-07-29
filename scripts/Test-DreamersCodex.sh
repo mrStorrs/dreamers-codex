@@ -320,9 +320,26 @@ assert_patterns(
         "lite selection": r"lite` = Vigil",
         "standard selection": r"standard` = Sentinel \+ Probe",
         "complex selection": r"complex` = Sentinel \+ Probe \+ Hone",
+        "planless intent inference": r"infer the intended behavior.*explicit user direction.*PR title/body.*commits and diff.*changed tests.*changed code",
+        "planless ambiguity question": r"one reliable interpretation.*ask the user one concise question",
+        "planless reviewer basis": r"review basis.*absolute plan path.*inferred-intent summary",
         "parallel spawning": r"launch every selected reviewer concurrently.*Never spawn or await reviewers sequentially",
         "caller owns fix loop": r"caller owns all finding disposition, gates, fixes, revalidation, and user testing",
         "artifact-only reviewer writes": r"sole write is exactly one.*artifact",
+    },
+)
+assert_patterns(
+    agent_root / "vigil.toml",
+    {
+        "planless Vigil review basis": r"If no plan is bound.*inferred-intent summary.*evidence",
+        "planless Vigil requirements": r"plan AC or inferred requirement",
+    },
+)
+assert_patterns(
+    agent_root / "probe.toml",
+    {
+        "planless Probe review basis": r"no plan is bound.*inferred requirements",
+        "planless Probe findings": r"report missing or weak coverage as findings",
     },
 )
 assert_patterns(

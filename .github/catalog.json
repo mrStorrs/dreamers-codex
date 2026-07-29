@@ -318,7 +318,7 @@
       "type": "skill",
       "slug": "dreamers-review",
       "name": "dreamers-review",
-      "description": "Review skill — selects reviewers from plan complexity or explicit plan/user direction, executes Vigil, Sentinel, Probe, Hone, selected subsets, or the full triad, then reports artifact-backed findings. Read-only for project files and git state; does not apply fixes.",
+      "description": "Review skill — selects reviewers from plan complexity or explicit plan/user direction, or infers review intent from code and context when no plan is available. Asks the user if the intent is unclear, then executes Vigil, Sentinel, Probe, Hone, selected subsets, or the full triad and reports artifact-backed findings. Read-only for project files and git state; does not apply fixes.",
       "author": "CJ Storrs",
       "tags": [
         "code",
