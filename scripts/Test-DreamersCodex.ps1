@@ -276,10 +276,16 @@ Assert-Patterns (Join-Path $skillRoot "dreamers/SKILL.md") @{
     "planning delegation" = '(?s)## Phase 1.*Invoke `dreamers-plan`'
     "implementation then review" = '(?s)### Steps 1.3.*Invoke `dreamers-implement.*### Step 4.*Invoke `dreamers-review'
     "complexity-selected review" = 'selects Vigil, Sentinel \+ Probe, or Sentinel \+ Probe \+ Hone from plan complexity or explicit plan/user direction'
-    "major-refactor gate" = '(?s)Major-refactor gate.*Apply now.*Defer — create follow-up plan.*Other'
+    "major-refactor gate" = '(?s)Major-refactor gate.*Apply now.*Defer — save to defered\.md.*Other'
+    "deferred findings ledger" = '(?s)Defer.*do NOT apply or create a follow-up plan.*defered\.md.*# Deferred Suggestions.*never overwrite.*Stage `defered\.md`'
     "major-change rerun gate" = '(?s)Run Vigil.*Run full triad.*Run selected dreamers-review lane.*Skip reviewer rerun.*Other'
     "templated user testing" = '(?s)user-testing-gate\.md.*Testing steps.*Notes.*Approved.*Bug found \(enter text\).*Other \(enter text\)'
     "full close-out" = '(?s)Phase 3.*improvements\.md.*dreamers-docs --branch.*Write retro.*Final commit.*User approval gate.*dreamers-pr'
+}
+Assert-Patterns (Join-Path $skillRoot "dreamers-pr-resolve/SKILL.md") @{
+    "deferred Vigil findings ledger" = '(?s)Defer — save to defered\.md.*do NOT apply.*create a follow-up plan.*defered\.md.*# Deferred Suggestions.*never overwrite.*Stage `defered\.md`'
+    "deferred ledger commit" = 'If any fixes landed or Step 5 added deferred entries'
+    "deferred ledger report" = 'Deferred Vigil findings recorded in `defered\.md`'
 }
 Assert-NoPatterns (Join-Path $skillRoot "dreamers/SKILL.md") @{
     "retired pipeline name" = 'dreamers-(?:full|lite)'
@@ -313,6 +319,7 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-new-project/SKILL.md") @{
 Assert-Patterns (Join-Path $dreamersRoot "instructions/dreamers.instructions.md") @{
     "same-context skill invocation" = '(?s)skill.*same orchestrator context|same orchestrator context.*skill'
     "outermost plan ownership" = '(?s)outermost skill.*owns.*(?:todo|plan)|(?:todo|plan).*owned by.*outermost skill'
+    "global deferred suggestions ledger" = '(?s)Deferred suggestions.*explicitly chooses `Defer`.*defered\.md.*# Deferred Suggestions.*never overwrite.*Stage `defered\.md`'
 }
 Assert-Patterns (Join-Path $dreamersRoot "refs/codex-runtime.md") @{
     "same-context composition" = 'invoke it in the same orchestrator context'
