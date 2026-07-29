@@ -306,9 +306,20 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-review/SKILL.md") @{
     "lite selection" = 'lite` = Vigil'
     "standard selection" = 'standard` = Sentinel \+ Probe'
     "complex selection" = 'complex` = Sentinel \+ Probe \+ Hone'
+    "planless intent inference" = "infer the intended behavior.*explicit user direction.*PR title/body.*commits and diff.*changed tests.*changed code"
+    "planless ambiguity question" = "one reliable interpretation.*ask the user one concise question"
+    "planless reviewer basis" = "review basis.*absolute plan path.*inferred-intent summary"
     "parallel spawning" = '(?s)launch every selected reviewer concurrently.*Never spawn or await reviewers sequentially'
     "caller owns fix loop" = 'caller owns all finding disposition, gates, fixes, revalidation, and user testing'
     "artifact-only reviewer writes" = '(?s)sole write is exactly one.*artifact'
+}
+Assert-Patterns (Join-Path $agentRoot "vigil.toml") @{
+    "planless Vigil review basis" = "If no plan is bound.*inferred-intent summary.*evidence"
+    "planless Vigil requirements" = "plan AC or inferred requirement"
+}
+Assert-Patterns (Join-Path $agentRoot "probe.toml") @{
+    "planless Probe review basis" = "no plan is bound.*inferred requirements"
+    "planless Probe findings" = "report missing or weak coverage as findings"
 }
 Assert-Patterns (Join-Path $skillRoot "dreamers-new-project/SKILL.md") @{
     "existing-solutions opt-in gate" = '(?s)Phase 1\.5.*ask the user.*Research similar existing solutions.*Skip research'
