@@ -1,10 +1,10 @@
-# dreamers-fix — flow
+# dreamers-lite — flow
 
 Visual map of the lightweight bug-fix pipeline. Source of truth is `SKILL.md`.
 
 ```mermaid
 flowchart TD
-    Start(["dreamers-fix the skill input"]) --> ArgCheck{"Bug description<br/>provided?"}
+    Start(["dreamers-lite the skill input"]) --> ArgCheck{"Bug description<br/>provided?"}
     ArgCheck -->|No| HaltA(["Halt + ask"])
     ArgCheck -->|Yes| S1
 

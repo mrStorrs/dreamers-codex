@@ -90,7 +90,7 @@ expected_skills = [
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
     "dreamers-docs",
-    "dreamers-fix",
+    "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
     "dreamers-issue",
@@ -144,7 +144,7 @@ expected_skill_readmes = [
     "dreamers-add-logging",
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
-    "dreamers-fix",
+    "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
     "dreamers-new-project",
@@ -233,7 +233,7 @@ if catalog_path.exists():
         items = {f"{item.get('type')}:{item.get('slug')}" for item in catalog.get("items", [])}
         if "skill:dreamers" not in items:
             add_error("Catalog missing item: skill:dreamers")
-        for retired in ["skill:dreamers-full", "skill:dreamers-lite"]:
+        for retired in ["skill:dreamers-full"]:
             if retired in items:
                 add_error(f"Catalog retains retired item: {retired}")
         for item in catalog.get("items", []):
@@ -255,7 +255,7 @@ if catalog_path.exists():
             }
             if "skill:dreamers" not in members:
                 add_error("Collection missing member: skill:dreamers")
-            for retired in ["skill:dreamers-full", "skill:dreamers-lite"]:
+            for retired in ["skill:dreamers-full"]:
                 if retired in members:
                     add_error(f"Collection retains retired member: {retired}")
         for folder in catalog.get("folderTargets", []):
@@ -424,7 +424,7 @@ for path in scan_files:
         if re.search(pattern, content):
             add_error(f"Stale Copilot/legacy token '{pattern}' remains in {rel}")
 
-legacy_pattern = re.compile(r"dreamers-(full|lite)", re.IGNORECASE)
+legacy_pattern = re.compile(r"dreamers-full", re.IGNORECASE)
 migration_pattern = re.compile(
     r"retir|remov|legacy|migrat|cleanup|clean up|previous|old command|no longer",
     re.IGNORECASE,
@@ -462,13 +462,13 @@ try:
     stale_plan_guide = tmp_home / "dreamers/templates/plan-writing-guide.md"
     stale_plan_guide.parent.mkdir(parents=True, exist_ok=True)
     stale_plan_guide.write_text("obsolete managed file\n", encoding="utf-8")
-    legacy_lite = tmp_home / "skills/dreamers-lite"
+    active_lite = tmp_home / "skills/dreamers-lite"
     legacy_full = tmp_home / "skills/dreamers-full"
-    for directory in [legacy_lite, legacy_full]:
+    for directory in [active_lite, legacy_full]:
         directory.mkdir(parents=True, exist_ok=True)
         (directory / "SKILL.md").write_text("managed\n", encoding="utf-8")
         (directory / "readme.md").write_text("managed\n", encoding="utf-8")
-    (legacy_lite / "user-owned.md").write_text("preserve\n", encoding="utf-8")
+    (active_lite / "user-owned.md").write_text("preserve\n", encoding="utf-8")
 
     import subprocess
     subprocess.run(
@@ -486,6 +486,11 @@ try:
         add_error(f"Install smoke did not remove obsolete managed file: {stale_git_instructions}")
     if not (tmp_home / "skills/dreamers/SKILL.md").exists():
         add_error("Install smoke did not install exact dreamers skill")
+    for managed in ["SKILL.md", "readme.md"]:
+        if not (active_lite / managed).exists():
+            add_error(f"Install smoke did not install active dreamers-lite file: {active_lite / managed}")
+    if "name: dreamers-lite" not in (active_lite / "SKILL.md").read_text(encoding="utf-8"):
+        add_error("Install smoke did not replace the active dreamers-lite skill")
     for managed_instruction in [
         "dreamers.comment-rules.instructions.md",
         "dreamers.laws.md",
@@ -495,13 +500,12 @@ try:
             add_error(f"Install smoke did not install managed instruction: {path}")
     if not user_instruction.exists():
         add_error(f"Install smoke removed user-owned instruction: {user_instruction}")
-    for directory in [legacy_lite, legacy_full]:
-        for managed in ["SKILL.md", "readme.md"]:
-            path = directory / managed
-            if path.exists():
-                add_error(f"Install smoke retained legacy managed file: {path}")
-    if not (legacy_lite / "user-owned.md").exists():
-        add_error(f"Install smoke removed user-owned legacy file: {legacy_lite}")
+    for managed in ["SKILL.md", "readme.md"]:
+        path = legacy_full / managed
+        if path.exists():
+            add_error(f"Install smoke retained legacy managed file: {path}")
+    if not (active_lite / "user-owned.md").exists():
+        add_error(f"Install smoke removed user-owned active file: {active_lite}")
     if legacy_full.exists():
         add_error(f"Install smoke did not prune empty legacy directory: {legacy_full}")
 finally:

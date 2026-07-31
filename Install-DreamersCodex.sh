@@ -49,7 +49,7 @@ obsolete_managed_files=(
   dreamers/instructions/git.instructions.md
   dreamers/templates/plan-writing-guide.md
 )
-legacy_skill_names=(dreamers-lite dreamers-full)
+legacy_skill_names=(dreamers-full)
 
 copy_dreamers_files() {
   local from="$1"
