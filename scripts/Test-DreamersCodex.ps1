@@ -76,7 +76,7 @@ $expectedSkills = @(
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
     "dreamers-docs",
-    "dreamers-fix",
+    "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
     "dreamers-issue",
@@ -130,7 +130,7 @@ $expectedSkillReadmes = @(
     "dreamers-add-logging",
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
-    "dreamers-fix",
+    "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
     "dreamers-new-project",
@@ -234,7 +234,7 @@ if (Test-Path $catalogPath) {
         $catalog = Get-Content -Raw $catalogPath | ConvertFrom-Json
         $items = @($catalog.items | ForEach-Object { "$($_.type):$($_.slug)" })
         if ("skill:dreamers" -notin $items) { Add-Error "Catalog missing item: skill:dreamers" }
-        foreach ($retired in @("skill:dreamers-full", "skill:dreamers-lite")) {
+        foreach ($retired in @("skill:dreamers-full")) {
             if ($retired -in $items) { Add-Error "Catalog retains retired item: $retired" }
         }
         foreach ($item in $catalog.items) {
@@ -252,7 +252,7 @@ if (Test-Path $catalogPath) {
             if (-not (Test-Path $readmePath)) { Add-Error "Catalog readmePath does not exist: $($collection.readmePath)" }
             $members = @($collection.members | ForEach-Object { "$($_.type):$($_.slug)" })
             if ("skill:dreamers" -notin $members) { Add-Error "Collection missing member: skill:dreamers" }
-            foreach ($retired in @("skill:dreamers-full", "skill:dreamers-lite")) {
+            foreach ($retired in @("skill:dreamers-full")) {
                 if ($retired -in $members) { Add-Error "Collection retains retired member: $retired" }
             }
         }
@@ -384,7 +384,7 @@ foreach ($file in $scanFiles) {
     }
 }
 
-$legacyPattern = "dreamers-(full|lite)"
+$legacyPattern = "dreamers-full"
 $migrationPattern = "retir|remov|legacy|migrat|cleanup|clean up|previous|old command|no longer"
 $legacyScanRoots = @("agents", "skills", "dreamers", "README.md", ".github/catalog.json", ".codex-plugin/plugin.json") |
     ForEach-Object { Join-Path $Root $_ } |
@@ -425,14 +425,14 @@ if (-not $SkipInstallSmoke) {
             New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
             Set-Content -Path $path -Value "user-owned" -Encoding utf8NoBOM
         }
-        $legacyLite = Join-Path $tmpHome "skills\dreamers-lite"
+        $activeLite = Join-Path $tmpHome "skills\dreamers-lite"
         $legacyFull = Join-Path $tmpHome "skills\dreamers-full"
-        foreach ($directory in @($legacyLite, $legacyFull)) {
+        foreach ($directory in @($activeLite, $legacyFull)) {
             New-Item -ItemType Directory -Path $directory -Force | Out-Null
             Set-Content -Path (Join-Path $directory "SKILL.md") -Value "managed" -Encoding utf8NoBOM
             Set-Content -Path (Join-Path $directory "readme.md") -Value "managed" -Encoding utf8NoBOM
         }
-        Set-Content -Path (Join-Path $legacyLite "user-owned.md") -Value "preserve" -Encoding utf8NoBOM
+        Set-Content -Path (Join-Path $activeLite "user-owned.md") -Value "preserve" -Encoding utf8NoBOM
 
         & (Join-Path $Root "Install-DreamersCodex.ps1") -CodexHome $tmpHome -Force | Out-Null
 
@@ -449,19 +449,24 @@ if (-not $SkipInstallSmoke) {
         if (-not (Test-Path (Join-Path $tmpHome "agents\sentinel.toml"))) { Add-Error "Install smoke did not install agent TOMLs" }
         if (Test-Path (Join-Path $tmpHome "agents\bolt.toml")) { Add-Error "Install smoke installed non-authoritative bolt agent" }
         if (-not (Test-Path (Join-Path $tmpHome "skills\dreamers\SKILL.md"))) { Add-Error "Install smoke did not install exact dreamers skill" }
+        foreach ($managed in @("SKILL.md", "readme.md")) {
+            $path = Join-Path $activeLite $managed
+            if (-not (Test-Path $path)) { Add-Error "Install smoke did not install active dreamers-lite file: $path" }
+        }
+        if ((Get-Content -Raw (Join-Path $activeLite "SKILL.md")) -notmatch "name: dreamers-lite") {
+            Add-Error "Install smoke did not replace the active dreamers-lite skill"
+        }
         foreach ($path in @(
             (Join-Path $tmpHome "dreamers\instructions\dreamers.comment-rules.instructions.md"),
             (Join-Path $tmpHome "dreamers\instructions\dreamers.laws.md")
         )) {
             if (-not (Test-Path $path)) { Add-Error "Install smoke missing managed instruction: $path" }
         }
-        foreach ($directory in @($legacyLite, $legacyFull)) {
-            foreach ($managed in @("SKILL.md", "readme.md")) {
-                $path = Join-Path $directory $managed
-                if (Test-Path $path) { Add-Error "Install smoke retained legacy managed file: $path" }
-            }
+        foreach ($managed in @("SKILL.md", "readme.md")) {
+            $path = Join-Path $legacyFull $managed
+            if (Test-Path $path) { Add-Error "Install smoke retained legacy managed file: $path" }
         }
-        if (-not (Test-Path (Join-Path $legacyLite "user-owned.md"))) { Add-Error "Install smoke removed user-owned legacy file: $legacyLite" }
+        if (-not (Test-Path (Join-Path $activeLite "user-owned.md"))) { Add-Error "Install smoke removed user-owned active file: $activeLite" }
         if (Test-Path $legacyFull) { Add-Error "Install smoke did not prune empty legacy directory: $legacyFull" }
 
         New-Item -ItemType Directory -Path $legacyFull -Force | Out-Null
@@ -488,7 +493,7 @@ if (-not $SkipInstallSmoke) {
         if (Test-Path $staleCommentRules) { Add-Error "Remove smoke left obsolete managed file behind: $staleCommentRules" }
         if (Test-Path $staleGitInstructions) { Add-Error "Remove smoke left obsolete managed file behind: $staleGitInstructions" }
         if (Test-Path $stalePlanGuide) { Add-Error "Remove smoke left obsolete managed file behind: $stalePlanGuide" }
-        if (-not (Test-Path (Join-Path $legacyLite "user-owned.md"))) { Add-Error "Remove smoke removed user-owned legacy file: $legacyLite" }
+        if (-not (Test-Path (Join-Path $activeLite "user-owned.md"))) { Add-Error "Remove smoke removed user-owned active file: $activeLite" }
         if (Test-Path $legacyFull) { Add-Error "Remove smoke did not prune empty legacy directory: $legacyFull" }
     }
     finally {

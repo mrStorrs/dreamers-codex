@@ -27,7 +27,7 @@ Windows:
 .\Install-DreamersCodex.ps1
 ```
 
-By default the installer targets `CODEX_HOME` when set, otherwise `~/.codex`. It copies Codex agent definitions to `agents/`, exact `dreamers` plus `dreamers-*` skills to `skills/`, and shared Dreamers refs/templates/instructions to `dreamers/` under that home. It removes only known managed files from retired `dreamers-full` and `dreamers-lite` installations, preserves user-owned files in those directories, and removes a legacy directory only when empty. It also removes the legacy deployed `dreamers/agents/` prompt copies from earlier conversions. Use `--force` in bash or `-Force` in PowerShell to overwrite existing Dreamers files.
+By default the installer targets `CODEX_HOME` when set, otherwise `~/.codex`. It copies Codex agent definitions to `agents/`, exact `dreamers` plus `dreamers-*` skills to `skills/`, and shared Dreamers refs/templates/instructions to `dreamers/` under that home. It removes only known managed files from retired `dreamers-full` installations, preserves user-owned files in those directories, and removes a legacy directory only when empty. It also removes the legacy deployed `dreamers/agents/` prompt copies from earlier conversions. Use `--force` in bash or `-Force` in PowerShell to overwrite existing Dreamers files.
 
 ## Use
 
@@ -44,7 +44,7 @@ Mention the skill name in a Codex request:
 - `dreamers-find-refactors` for refactor discovery: select lenses, section the repo, run section-scoped Hone audits, synthesize findings, write Dreamers plan files, then stop.
 - `dreamers-new-project` for project bootstrap: discovery, optional user-approved existing-solutions research, stack selection, brief, and shell plans.
 - `dreamers-pr-resolve` for PR feedback resolution; Vigil reviews accepted changes and deferred Vigil findings are appended to project-root `defered.md`.
-- `dreamers-docs`, `dreamers-pr`, `dreamers-fix`, and the utility skills for narrower flows. `dreamers-pr` also archives shipped Dreamers plan artifacts after PR creation.
+- `dreamers-docs`, `dreamers-pr`, `dreamers-lite`, and the utility skills for narrower flows. `dreamers-pr` also archives shipped Dreamers plan artifacts after PR creation.
 
 The converted skills apply `dreamers/refs/codex-runtime.md` to translate composition, delegation, and approval gates into Codex tool usage. Specialized skills invoked by `dreamers` run in the same orchestrator context; only reviewer, documentarian, and researcher roles are spawned as subagents. Sentinel, Probe, Hone, and Vigil are read-only for project files and each writes one durable `.dreamers/reviews/` artifact. `dreamers-review` launches every reviewer in a multi-reviewer lane concurrently, reads all artifacts, and returns findings without applying them. `dreamers` applies those findings and uses `dreamers-review --vigil` for normal follow-up review reruns.
 
