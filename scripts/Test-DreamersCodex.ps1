@@ -76,6 +76,7 @@ $expectedSkills = @(
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
     "dreamers-docs",
+    "dreamers-explain",
     "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
@@ -130,6 +131,7 @@ $expectedSkillReadmes = @(
     "dreamers-add-logging",
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
+    "dreamers-explain",
     "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
@@ -338,6 +340,15 @@ Assert-Patterns (Join-Path $dreamersRoot "refs/codex-runtime.md") @{
 }
 Assert-NoPatterns (Join-Path $skillRoot "dreamers-update/SKILL.md") @{
     "implementation mirror rule" = 'dreamers-implement mirror'
+}
+Assert-Patterns (Join-Path $skillRoot "dreamers-explain/SKILL.md") @{
+    "Codex runtime preamble" = '(?s)## Codex runtime.*codex-runtime\.md.*Skill input: use the user''s message'
+    "read-only boundary" = '(?s)Default to read-only work.*do not modify the subject'
+    "focused research boundary" = '(?s)Use `dreamers-research` instead.*durable, multi-perspective research report'
+    "conditional source retrieval" = '(?s)Search or retrieve external sources when:.*facts may have changed.*niche, disputed, uncertain, or high-stakes'
+    "source priority" = '(?s)Source priority:.*repository evidence.*First-party documentation.*High-quality secondary sources'
+    "layered explanation" = '(?s)Direct answer.*Orientation.*Mental model.*Mechanics.*Concrete example.*Edges and alternatives.*Takeaway'
+    "optional comprehension" = 'Do not force a quiz or Socratic exchange'
 }
 Assert-Patterns (Join-Path $Root ".codex-plugin/plugin.json") @{
     "unified default prompt" = 'Use dreamers to plan and ship'

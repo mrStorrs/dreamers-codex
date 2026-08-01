@@ -28,6 +28,7 @@
     ],
     "defaultPrompt": [
       "Use dreamers-plan to plan this feature.",
+      "Use dreamers-explain to thoroughly explain this code.",
       "Use dreamers-review on my current diff.",
       "Use dreamers to plan and ship this change.",
       "Use dreamers with this existing plan or manifest."

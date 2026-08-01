@@ -43,6 +43,7 @@ Mention the skill name in a Codex request:
 - `dreamers` for the complete pipeline. It accepts a task description, existing plan path(s), or a manifest. Task mode invokes `dreamers-plan`, then runs the plan review / implementation-start gate; plan path and manifest modes skip both after plan-quality checks. Per plan it invokes `dreamers-implement`, then `dreamers-review`. The orchestrator applies findings, appends deferred findings to project-root `defered.md`, and owns the major-refactor gate, review-rerun gate, user-testing fix loop, full close-out, final approval, and `dreamers-pr` invocation.
 - `dreamers-find-refactors` for refactor discovery: select lenses, section the repo, run section-scoped Hone audits, synthesize findings, write Dreamers plan files, then stop.
 - `dreamers-new-project` for project bootstrap: discovery, optional user-approved existing-solutions research, stack selection, brief, and shell plans.
+- `dreamers-explain` for thorough, read-only explanations of topics, code, documents, systems, and decisions, with authoritative sources when needed.
 - `dreamers-pr-resolve` for PR feedback resolution; Vigil reviews accepted changes and deferred Vigil findings are appended to project-root `defered.md`.
 - `dreamers-docs`, `dreamers-pr`, `dreamers-lite`, and the utility skills for narrower flows. `dreamers-pr` also archives shipped Dreamers plan artifacts after PR creation.
 
