@@ -37,9 +37,9 @@ Across Dreamers skills, an explicit user choice to defer a suggested change appe
 
 Mention the skill name in a Codex request:
 
-- `dreamers-plan` for interactive Grill planning with one question-tool ask at a time, proposal review before approval, user-overridable lite / standard / complex plan type selection, and written-plan coverage review before the review gate.
+- `dreamers-plan` for interactive Grill planning that stores every question and response word for word in `grilling-transcript.md`, links it from each right-sized plan, and verifies plan coverage before the review gate.
 - `dreamers-implement` for the tests-first implementation phase of one approved plan. It exits at green validation and does not review or ship.
-- `dreamers-review` for artifact-backed review selected from plan complexity or explicit plan/user direction. Without a plan, it infers intent from code and context, asking if unclear. Lite plans use Vigil, standard plans use Sentinel + Probe, and complex plans use Sentinel + Probe + Hone. Multi-reviewer lanes spawn concurrently.
+- `dreamers-review` for artifact-backed review selected from plan complexity or explicit plan/user direction. For plan-bound reviews, it reads the linked or sibling verbatim Grill transcript when present and supplies it as intent context. Without a plan, it infers intent from code and context, asking if unclear. Multi-reviewer lanes spawn concurrently.
 - `dreamers` for the complete pipeline. It accepts a task description, existing plan path(s), or a manifest. Task mode invokes `dreamers-plan`, then runs the plan review / implementation-start gate; plan path and manifest modes skip both after plan-quality checks. Per plan it invokes `dreamers-implement`, then `dreamers-review`. The orchestrator applies findings, appends deferred findings to project-root `defered.md`, and owns the major-refactor gate, review-rerun gate, user-testing fix loop, full close-out, final approval, and `dreamers-pr` invocation.
 - `dreamers-find-refactors` for refactor discovery: select lenses, section the repo, run section-scoped Hone audits, synthesize findings, write Dreamers plan files, then stop.
 - `dreamers-new-project` for project bootstrap: discovery, optional user-approved existing-solutions research, stack selection, brief, and shell plans.

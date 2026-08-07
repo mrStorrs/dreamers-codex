@@ -311,9 +311,25 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-review/SKILL.md") @{
     "planless intent inference" = "infer the intended behavior.*explicit user direction.*PR title/body.*commits and diff.*changed tests.*changed code"
     "planless ambiguity question" = "one reliable interpretation.*ask the user one concise question"
     "planless reviewer basis" = "review basis.*absolute plan path.*inferred-intent summary"
+    "Grill transcript resolution" = 'Grilling transcript:.*sibling `grilling-transcript\.md`.*read it in full'
+    "Grill transcript reviewer context" = "absolute path and full verbatim contents.*plan/transcript conflict"
     "parallel spawning" = '(?s)launch every selected reviewer concurrently.*Never spawn or await reviewers sequentially'
     "caller owns fix loop" = 'caller owns all finding disposition, gates, fixes, revalidation, and user testing'
     "artifact-only reviewer writes" = '(?s)sole write is exactly one.*artifact'
+}
+Assert-Patterns (Join-Path $dreamersRoot "refs/planning-grill.md") @{
+    "verbatim transcript" = "every planner.*question and every user response.*exactly as sent or.*received.*Do not summarize"
+    "structured question detail" = "request_user_input.*complete presented question.*choice labels.*choice descriptions"
+    "transcript path" = "\.dreamers/plans/feature-<slug>/grilling-transcript\.md"
+}
+Assert-Patterns (Join-Path $skillRoot "dreamers-plan/SKILL.md") @{
+    "verbatim transcript write" = 'write `grilling-transcript\.md`.*Preserve every question and response word for word'
+    "plan transcript link" = 'each plan MUST include `\*\*Grilling transcript:\*\* \[grilling-transcript\.md\]\(\./grilling-transcript\.md\)`'
+}
+foreach ($guideName in @("plan-guide-lite.md", "plan-guide-standard.md", "plan-guide-complex.md")) {
+    Assert-Patterns (Join-Path $dreamersRoot "templates/$guideName") @{
+        "optional Grill transcript metadata" = "\*\*Grilling transcript:\*\*.*grilling-transcript\.md.*when the sibling artifact exists"
+    }
 }
 Assert-Patterns (Join-Path $agentRoot "vigil.toml") @{
     "planless Vigil review basis" = "If no plan is bound.*inferred-intent summary.*evidence"
