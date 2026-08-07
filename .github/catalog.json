@@ -44,7 +44,7 @@
       "type": "agent",
       "slug": "nova",
       "name": "nova",
-      "description": "Planning specialist of the Dreamers — planning persona. Enter via `agent nova` for a multi-turn planning session. Runs the interactive three-phase requirements conversation with Phase 1A Grill before proposal approval, asks one question-tool prompt at a time with recommended / alternate / Other choices, honors user plan-type override, writes right-sized plan file(s) at `.dreamers/plans/feature-<slug>/plan-NN-<name>.md` (and optional `manifest.md` in the same feature directory), verifies plan coverage against the proposal and user discussion, hard-stops at the approval gate. Never implements / commits / pushes. NOT a spawned subagent.",
+      "description": "Planning specialist of the Dreamers — planning persona. Enter via `agent nova` for a multi-turn planning session. Runs Phase 1A Grill, stores every question and response word for word in `.dreamers/plans/feature-<slug>/grilling-transcript.md`, links it from each right-sized plan, verifies plan coverage, and hard-stops at approval. Never implements / commits / pushes. NOT a spawned subagent.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -266,7 +266,7 @@
       "type": "skill",
       "slug": "dreamers-plan",
       "name": "dreamers-plan",
-      "description": "Standalone planning entry point. 3-phase requirements conversation (interactive Hash-out → Write → Review). Runs Phase 1A Grill before proposal approval, asks one question-tool prompt at a time with recommended / alternate / Other choices, honors user plan-type override, selects lite / standard / complex, produces right-sized plan file(s) under .dreamers/plans/feature-<slug>/ and optional manifest, then verifies written-plan coverage against the approved proposal and user discussion. Hard-stops at the review gate; does NOT implement and does NOT invoke any other skill.",
+      "description": "Standalone planning entry point. Runs the three-phase requirements conversation, stores every Phase 1A Grill question and response word for word in `.dreamers/plans/feature-<slug>/grilling-transcript.md`, links it from each generated plan, produces right-sized plan file(s) and an optional manifest, then verifies coverage. Hard-stops at the review gate; never implements.",
       "author": "CJ Storrs",
       "tags": [
         "code",
@@ -331,7 +331,7 @@
       "type": "skill",
       "slug": "dreamers-review",
       "name": "dreamers-review",
-      "description": "Review skill — selects reviewers from plan complexity or explicit plan/user direction, or infers review intent from code and context when no plan is available. Asks the user if the intent is unclear, then executes Vigil, Sentinel, Probe, Hone, selected subsets, or the full triad and reports artifact-backed findings. Read-only for project files and git state; does not apply fixes.",
+      "description": "Review skill — selects reviewers from plan complexity or explicit direction and supplies a linked or sibling verbatim Grill transcript as intent context when present. Without a plan, infers intent from code and asks if unclear. Executes the selected reviewer lane and reports artifact-backed findings. Read-only.",
       "author": "CJ Storrs",
       "tags": [
         "code",

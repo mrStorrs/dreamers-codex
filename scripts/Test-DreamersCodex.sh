@@ -325,11 +325,33 @@ assert_patterns(
         "planless intent inference": r"infer the intended behavior.*explicit user direction.*PR title/body.*commits and diff.*changed tests.*changed code",
         "planless ambiguity question": r"one reliable interpretation.*ask the user one concise question",
         "planless reviewer basis": r"review basis.*absolute plan path.*inferred-intent summary",
+        "Grill transcript resolution": r"Grilling transcript:.*sibling `grilling-transcript\.md`.*read it in full",
+        "Grill transcript reviewer context": r"absolute path and full verbatim contents.*plan/transcript conflict",
         "parallel spawning": r"launch every selected reviewer concurrently.*Never spawn or await reviewers sequentially",
         "caller owns fix loop": r"caller owns all finding disposition, gates, fixes, revalidation, and user testing",
         "artifact-only reviewer writes": r"sole write is exactly one.*artifact",
     },
 )
+assert_patterns(
+    dreamers_root / "refs/planning-grill.md",
+    {
+        "verbatim transcript": r"every planner.*question and every user response.*exactly as sent or.*received.*Do not summarize",
+        "structured question detail": r"request_user_input.*complete presented question.*choice labels.*choice descriptions",
+        "transcript path": r"\.dreamers/plans/feature-<slug>/grilling-transcript\.md",
+    },
+)
+assert_patterns(
+    skill_root / "dreamers-plan/SKILL.md",
+    {
+        "verbatim transcript write": r"write `grilling-transcript\.md`.*Preserve every question and response word for word",
+        "plan transcript link": r"each plan MUST include `\*\*Grilling transcript:\*\* \[grilling-transcript\.md\]\(\./grilling-transcript\.md\)`",
+    },
+)
+for guide_name in ["plan-guide-lite.md", "plan-guide-standard.md", "plan-guide-complex.md"]:
+    assert_patterns(
+        dreamers_root / "templates" / guide_name,
+        {"optional Grill transcript metadata": r"\*\*Grilling transcript:\*\*.*grilling-transcript\.md.*when the sibling artifact exists"},
+    )
 assert_patterns(
     agent_root / "vigil.toml",
     {

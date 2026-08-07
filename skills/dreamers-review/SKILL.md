@@ -1,6 +1,6 @@
 ---
 name: dreamers-review
-description: "Review skill — selects reviewers from plan complexity or explicit plan/user direction, or infers review intent from the code when no plan is available. Executes Vigil, Sentinel, Probe, Hone, a selected subset, or the full triad, then reports artifact-backed findings. Read-only for project files and git state; does NOT apply fixes. Use when the user asks for dreamers-review, review my code, audit."
+description: "Review skill — selects reviewers from plan complexity or explicit direction, includes a linked verbatim Grill transcript when present, or infers intent without a plan. Reports artifact-backed findings; read-only for project files and git state. Use when the user asks for dreamers-review, review my code, audit."
 ---
 
 ## Codex runtime
@@ -23,6 +23,7 @@ Scope flags: `--paths <glob>` (specific files), `--branch` (feature-branch diff 
 
 ## Step 1 — Establish the review basis
 - If a readable plan is supplied, use it as the review basis. A user-supplied path that cannot be read remains a blocking error; do not silently replace it with an inferred basis.
+- For a supplied plan, resolve `**Grilling transcript:**` relative to the plan. If the metadata is absent, check for sibling `grilling-transcript.md` for compatibility. When a readable transcript exists, read it in full and bind its absolute path + verbatim contents alongside the plan as authoritative user-intent context. If the plan references a transcript that is missing or unreadable, block instead of silently dropping it. If no transcript exists or is referenced, continue with the plan alone.
 - If no plan is supplied or no plan is available, infer the intended behavior from, in order: explicit user direction; PR title/body and branch name; commits and diff in the selected scope; changed tests; changed code and its callers; then nearby conventions and public interfaces.
 - Write a concise inferred-intent summary with the observable behavior, invariants, likely regression risks, evidence paths, and confidence. Treat that summary as the review basis, not as a replacement plan.
 - If the evidence does not support one reliable interpretation of the change, ask the user one concise question before spawning reviewers. Do not guess or use the full triad to decide the requirement.
@@ -37,7 +38,7 @@ Scope flags: `--paths <glob>` (specific files), `--branch` (feature-branch diff 
 - For multiple selected reviewers, launch every selected reviewer concurrently through parallel `multi_agent_v1.spawn_agent` calls, then wait for all of them. Never spawn or await reviewers sequentially.
 - Vigil and single-lens modes spawn only the chosen reviewer.
 - Every reviewer prompt MUST include `Do NOT call update_plan.`
-- Every reviewer prompt MUST include the review basis: either the absolute plan path or the inferred-intent summary with its evidence and confidence. Explicitly say `no plan binding` for inferred-intent reviews.
+- Every reviewer prompt MUST include the review basis: either the absolute plan path or the inferred-intent summary with its evidence and confidence. For a plan-bound review with a resolved Grill transcript, include its absolute path and full verbatim contents; require the reviewer to use it when checking intent alignment and to report any plan/transcript conflict rather than silently choosing one. Explicitly say `no plan binding` for inferred-intent reviews.
 - Every reviewer prompt MUST require exactly one artifact under `.dreamers/reviews/<reviewer>-<slug>-<yyyymmdd-hhmmss>.md` and short chat output containing only status, counts, artifact path, blocked reason, and open questions.
 - Per-lens prompt context:
   - **Vigil** — combined correctness, security, maintainability, test coverage, and simplicity review with the required architecture audit. Artifact contains findings, intent alignment, requirement coverage, and architecture audit sections.
