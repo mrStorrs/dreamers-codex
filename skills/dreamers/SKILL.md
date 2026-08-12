@@ -1,6 +1,6 @@
 ---
 name: dreamers
-description: "End-to-end Dreamers delivery orchestrator. Accepts a task description, existing plan file(s), or a feature manifest. Preserves the full pipeline gates and close-out while invoking specialized planning, implementation, review, documentation, and PR skills. Reviewers are selected by dreamers-review from plan complexity or explicit plan/user direction; deferred findings are recorded in project-root defered.md. Use when the user asks for dreamers, plan and implement, new feature, ship a feature."
+description: "End-to-end Dreamers delivery orchestrator. Routes empty and help input to the read-only dreamers-help guide, then accepts a task description, existing plan file(s), or a feature manifest. Preserves the full pipeline gates and close-out while invoking specialized planning, implementation, review, documentation, and PR skills. Reviewers are selected by dreamers-review from plan complexity or explicit plan/user direction; deferred findings are recorded in project-root defered.md. Use when the user asks for dreamers, plan and implement, new feature, ship a feature."
 ---
 
 ## Codex runtime
@@ -8,7 +8,17 @@ Before executing this skill, apply the Codex runtime mapping from `../dreamers/r
 
 Skill input: use the user's message, including any paths or flags.
 
-If no task description, plan path, or manifest was provided, halt + ask.
+## Route input
+
+Normalize whitespace before routing.
+
+- Empty or whitespace-only input, `help`, `--help`, or `-h`: invoke `dreamers-help` as a read-only delegation and halt this delivery workflow. Do not inspect or mutate repository, git, mailbox, or external state first.
+- Task description: use planning mode.
+- Resolved plan path or paths: use plan mode.
+- A resolved manifest.md: use manifest mode.
+- Otherwise halt and ask for a task, plan path, manifest, or help.
+
+Plan paths must resolve under `.dreamers/plans/` and be named `plan-*.md`. A manifest must resolve under `.dreamers/plans/` and be named `manifest.md`. Reject missing or escaping paths.
 
 ## Modes
 | Mode | Input | Phase 1 / 1.5 behavior |

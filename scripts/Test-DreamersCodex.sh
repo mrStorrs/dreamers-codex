@@ -91,6 +91,7 @@ expected_skills = [
     "dreamers-cleanup-comments-branch",
     "dreamers-docs",
     "dreamers-explain",
+    "dreamers-help",
     "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
@@ -233,8 +234,9 @@ if catalog_path.exists():
     try:
         catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
         items = {f"{item.get('type')}:{item.get('slug')}" for item in catalog.get("items", [])}
-        if "skill:dreamers" not in items:
-            add_error("Catalog missing item: skill:dreamers")
+        for required in ["skill:dreamers", "skill:dreamers-help"]:
+            if required not in items:
+                add_error(f"Catalog missing item: {required}")
         for retired in ["skill:dreamers-full"]:
             if retired in items:
                 add_error(f"Catalog retains retired item: {retired}")
@@ -255,8 +257,9 @@ if catalog_path.exists():
                 f"{member.get('type')}:{member.get('slug')}"
                 for member in collection.get("members", [])
             }
-            if "skill:dreamers" not in members:
-                add_error("Collection missing member: skill:dreamers")
+            for required in ["skill:dreamers", "skill:dreamers-help"]:
+                if required not in members:
+                    add_error(f"Collection missing member: {required}")
             for retired in ["skill:dreamers-full"]:
                 if retired in members:
                     add_error(f"Collection retains retired member: {retired}")
@@ -275,7 +278,8 @@ if catalog_path.exists():
 assert_patterns(
     skill_root / "dreamers/SKILL.md",
     {
-        "missing-input halt": r"If no task description, plan path, or manifest was provided, halt \+ ask",
+        "help route": r"## Route input.*Empty or whitespace-only input.*`help`.*`--help`.*`-h`.*invoke `dreamers-help`.*read-only",
+        "unrecognized-input halt": r"Otherwise halt and ask for a task, plan path, manifest, or help",
         "three input modes": r"## Modes.*Task description.*Plan path\(s\).*manifest\.md",
         "planning delegation": r"## Phase 1.*Invoke `dreamers-plan`",
         "implementation then review": r"### Steps 1.3.*Invoke `dreamers-implement.*### Step 4.*Invoke `dreamers-review",
@@ -285,6 +289,18 @@ assert_patterns(
         "major-change rerun gate": r"Run Vigil.*Run full triad.*Run selected dreamers-review lane.*Skip reviewer rerun.*Other",
         "templated user testing": r"user-testing-gate\.md.*Testing steps.*Notes.*Approved.*Bug found \(enter text\).*Other \(enter text\)",
         "full close-out": r"Phase 3.*improvements\.md.*dreamers-docs --branch.*Write retro.*Final commit.*User approval gate.*dreamers-pr",
+    },
+)
+assert_patterns(
+    skill_root / "dreamers-help/SKILL.md",
+    {
+        "Codex runtime preamble": r"## Codex runtime.*codex-runtime\.md.*Skill input: use the user's message",
+        "read-only boundary": r"## Boundary.*read-only guidance.*Do not inspect or change",
+        "primary examples": r"dreamers add offline export.*dreamers feature-search/plan-01-indexing\.md.*dreamers feature-search/manifest\.md",
+        "review lanes": r"lite plans use Vigil.*standard plans use Sentinel \+ Probe.*complex plans use Sentinel \+ Probe \+ Hone",
+        "specialized choices": r"dreamers-plan.* dreamers-implement.* dreamers-review.* dreamers-lite",
+        "mandatory gates": r"plan approval.*major scope expansion.*triggered user testing.*final pre-PR approval",
+        "invitation": r"Describe your goal and I can suggest the next command",
     },
 )
 assert_patterns(
@@ -299,7 +315,6 @@ assert_no_patterns(
     skill_root / "dreamers/SKILL.md",
     {
         "retired pipeline name": r"dreamers-(?:full|lite)",
-        "help route": r"--help|dreamers-help",
         "Grill opt-out": r"--no-grill|do not grill|skip the interview",
         "inline implementation refs": r"<(?:planning-grill|testing-mandate|comment-rules|logging-discipline|reviewer-findings-format|agent-recovery)>",
     },
@@ -522,6 +537,8 @@ try:
         add_error(f"Install smoke did not remove obsolete managed file: {stale_git_instructions}")
     if not (tmp_home / "skills/dreamers/SKILL.md").exists():
         add_error("Install smoke did not install exact dreamers skill")
+    if not (tmp_home / "skills/dreamers-help/SKILL.md").exists():
+        add_error("Install smoke did not install dreamers-help skill")
     for managed in ["SKILL.md", "readme.md"]:
         if not (active_lite / managed).exists():
             add_error(f"Install smoke did not install active dreamers-lite file: {active_lite / managed}")
