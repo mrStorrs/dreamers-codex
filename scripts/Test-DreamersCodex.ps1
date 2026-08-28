@@ -77,6 +77,7 @@ $expectedSkills = @(
     "dreamers-cleanup-comments-branch",
     "dreamers-docs",
     "dreamers-explain",
+    "dreamers-help",
     "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
@@ -235,7 +236,9 @@ if (Test-Path $catalogPath) {
     try {
         $catalog = Get-Content -Raw $catalogPath | ConvertFrom-Json
         $items = @($catalog.items | ForEach-Object { "$($_.type):$($_.slug)" })
-        if ("skill:dreamers" -notin $items) { Add-Error "Catalog missing item: skill:dreamers" }
+        foreach ($required in @("skill:dreamers", "skill:dreamers-help")) {
+            if ($required -notin $items) { Add-Error "Catalog missing item: $required" }
+        }
         foreach ($retired in @("skill:dreamers-full")) {
             if ($retired -in $items) { Add-Error "Catalog retains retired item: $retired" }
         }
@@ -253,7 +256,9 @@ if (Test-Path $catalogPath) {
             $readmePath = Join-Path $Root ($collection.readmePath -replace '/', [System.IO.Path]::DirectorySeparatorChar)
             if (-not (Test-Path $readmePath)) { Add-Error "Catalog readmePath does not exist: $($collection.readmePath)" }
             $members = @($collection.members | ForEach-Object { "$($_.type):$($_.slug)" })
-            if ("skill:dreamers" -notin $members) { Add-Error "Collection missing member: skill:dreamers" }
+            foreach ($required in @("skill:dreamers", "skill:dreamers-help")) {
+                if ($required -notin $members) { Add-Error "Collection missing member: $required" }
+            }
             foreach ($retired in @("skill:dreamers-full")) {
                 if ($retired -in $members) { Add-Error "Collection retains retired member: $retired" }
             }
@@ -273,7 +278,8 @@ if (Test-Path $catalogPath) {
 }
 
 Assert-Patterns (Join-Path $skillRoot "dreamers/SKILL.md") @{
-    "missing-input halt" = 'If no task description, plan path, or manifest was provided, halt \+ ask'
+    "help route" = '## Route input.*Empty or whitespace-only input.*`help`.*`--help`.*`-h`.*invoke `dreamers-help`.*read-only'
+    "unrecognized-input halt" = 'Otherwise halt and ask for a task, plan path, manifest, or help'
     "three input modes" = '(?s)## Modes.*Task description.*Plan path\(s\).*manifest\.md'
     "planning delegation" = '(?s)## Phase 1.*Invoke `dreamers-plan`'
     "implementation then review" = '(?s)### Steps 1.3.*Invoke `dreamers-implement.*### Step 4.*Invoke `dreamers-review'
@@ -284,6 +290,15 @@ Assert-Patterns (Join-Path $skillRoot "dreamers/SKILL.md") @{
     "templated user testing" = '(?s)user-testing-gate\.md.*Testing steps.*Notes.*Approved.*Bug found \(enter text\).*Other \(enter text\)'
     "full close-out" = '(?s)Phase 3.*improvements\.md.*dreamers-docs --branch.*Write retro.*Final commit.*User approval gate.*dreamers-pr'
 }
+Assert-Patterns (Join-Path $skillRoot "dreamers-help/SKILL.md") @{
+    "Codex runtime preamble" = '## Codex runtime.*codex-runtime\.md.*Skill input: use the user''s message'
+    "read-only boundary" = '## Boundary.*read-only guidance.*Do not inspect or change'
+    "primary examples" = 'dreamers add offline export.*dreamers feature-search/plan-01-indexing\.md.*dreamers feature-search/manifest\.md'
+    "review lanes" = 'lite plans use Vigil.*standard plans use Sentinel \+ Probe.*complex plans use Sentinel \+ Probe \+ Hone'
+    "specialized choices" = 'dreamers-plan.* dreamers-implement.* dreamers-review.* dreamers-lite'
+    "mandatory gates" = 'plan approval.*major scope expansion.*triggered user testing.*final pre-PR approval'
+    "invitation" = 'Describe your goal and I can suggest the next command'
+}
 Assert-Patterns (Join-Path $skillRoot "dreamers-pr-resolve/SKILL.md") @{
     "deferred Vigil findings ledger" = '(?s)Defer — save to defered\.md.*do NOT apply.*create a follow-up plan.*defered\.md.*# Deferred Suggestions.*never overwrite.*Stage `defered\.md`'
     "deferred ledger commit" = 'If any fixes landed or Step 5 added deferred entries'
@@ -291,7 +306,6 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-pr-resolve/SKILL.md") @{
 }
 Assert-NoPatterns (Join-Path $skillRoot "dreamers/SKILL.md") @{
     "retired pipeline name" = 'dreamers-(?:full|lite)'
-    "help route" = '--help|dreamers-help'
     "Grill opt-out" = '--no-grill|do not grill|skip the interview'
     "inline implementation refs" = '<(?:planning-grill|testing-mandate|comment-rules|logging-discipline|reviewer-findings-format|agent-recovery)>'
 }
@@ -476,6 +490,7 @@ if (-not $SkipInstallSmoke) {
         if (-not (Test-Path (Join-Path $tmpHome "agents\sentinel.toml"))) { Add-Error "Install smoke did not install agent TOMLs" }
         if (Test-Path (Join-Path $tmpHome "agents\bolt.toml")) { Add-Error "Install smoke installed non-authoritative bolt agent" }
         if (-not (Test-Path (Join-Path $tmpHome "skills\dreamers\SKILL.md"))) { Add-Error "Install smoke did not install exact dreamers skill" }
+        if (-not (Test-Path (Join-Path $tmpHome "skills\dreamers-help\SKILL.md"))) { Add-Error "Install smoke did not install dreamers-help skill" }
         foreach ($managed in @("SKILL.md", "readme.md")) {
             $path = Join-Path $activeLite $managed
             if (-not (Test-Path $path)) { Add-Error "Install smoke did not install active dreamers-lite file: $path" }
@@ -511,6 +526,7 @@ if (-not $SkipInstallSmoke) {
         if (Test-Path (Join-Path $tmpHome "agents\sentinel.toml")) { Add-Error "Remove smoke left managed agent file behind" }
         if (Test-Path (Join-Path $tmpHome "skills\dreamers-plan\SKILL.md")) { Add-Error "Remove smoke left managed skill file behind" }
         if (Test-Path (Join-Path $tmpHome "skills\dreamers\SKILL.md")) { Add-Error "Remove smoke left exact dreamers skill behind" }
+        if (Test-Path (Join-Path $tmpHome "skills\dreamers-help\SKILL.md")) { Add-Error "Remove smoke left dreamers-help skill behind" }
         foreach ($path in @(
             (Join-Path $tmpHome "dreamers\instructions\dreamers.comment-rules.instructions.md"),
             (Join-Path $tmpHome "dreamers\instructions\dreamers.laws.md")
