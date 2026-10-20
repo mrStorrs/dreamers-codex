@@ -4,13 +4,11 @@ description: "Between-milestone maintenance pass: prune stale files, audit impro
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 Run a between-milestone maintenance pass. No implementation, no planning, no subagents — do all of this directly.
 
 Follow the Dreamers Kernel and output discipline from `Codex global instructions, if configured`.
-
-Skill input: use the user's message, including any paths or flags.
 
 ---
 
@@ -45,8 +43,8 @@ The legacy multi-agent pipeline wrote per-cycle workspace artifacts under `.drea
 If any of those directories exist, the user is welcome to delete them:
 
 ```bash
-# Unix / macOS
-rm -rf .dreamers/{forge,probe,hone,sentinel,echo}
+# Remove legacy workspace directories on Unix / macOS
+rm -rf .dreamers/{forge,probe,hone,sentinel,echo} # legacy cleanup
 ```
 
 ```powershell
@@ -61,10 +59,10 @@ Do NOT auto-delete — surface as a recommendation. The user may want to keep hi
 Read these durable surfaces and check for drift / contradictions:
 - `.dreamers/improvements.md` — open items still relevant?
 - `.dreamers/retros/` — anything stale or contradicted by recent work?
-- Project-level `AGENTS.md, CODEX.md, or .github/copilot-instructions.md when present` Echo-owned sections (Tech stack, Repo structure, Conventions, Key files) — match the actual codebase?
+- Project-level `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present Echo-owned sections (Tech stack, Repo structure, Conventions, Key files) — match the actual codebase?
 - Recent `git log` on the default branch — major shifts (tech stack, architecture, tooling) reflected in instruction files?
 
-**Propose** all changes to the user — do not auto-apply. Present a numbered list of proposed updates, then ask the user (multi-select) with one option per proposed change plus `"Apply none"` and `"Other"` for freeform direction. Apply only the items the user selects. Exception: clearly stale entries pointing to nonexistent files can be removed without asking.
+**Propose** all changes to the user — do not auto-apply. Present a numbered list of proposed updates, then call asking the user (multi-select) with one option per proposed change plus `"Apply none"` and `"Other"` for freeform direction. Apply only the items the user selects. Exception: clearly stale entries pointing to nonexistent files can be removed without asking.
 
 ## Step 4 — Report
 

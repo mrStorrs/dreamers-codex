@@ -4,19 +4,16 @@ description: "Branch-scoped comment cleanup. Same as dreamers-cleanup-comments b
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 <comment-rules>
-# Comment Rules
-
 ## Core principle
-Comments must add value that the code cannot express itself. Concise, no fluff, no separators — value only.
+Comments must add value that the code cannot express itself. Concise, no fluff, no separators.
 
 ## When to comment
 - Non-obvious logic: why a non-obvious approach was chosen, constraints, gotchas
 - Public API documentation callers need to use the interface correctly
 - TODO/FIXME with specific, actionable notes
-- License headers
 
 ## When NOT to comment
 - Code that reads naturally from well-named functions and variables
@@ -28,6 +25,7 @@ Comments must add value that the code cannot express itself. Concise, no fluff, 
 - **No spec rationalization** — never write comments arguing a spec permits a pattern; implement cleanly and let review judge
 - **No redundant JSDoc/KDoc** that only repeats the function signature
 - **No em dashes. no exceptions**
+- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
 
 ## Style
 - One line when possible; never exceed two lines for inline comments
@@ -36,13 +34,11 @@ Comments must add value that the code cannot express itself. Concise, no fluff, 
 </comment-rules>
 
 <dreamers-kernel>
-# Dreamers Kernel
-
 ## User overrides
 
 Explicit user instructions can skip or alter phases/actions.
 
-## Subagent allowlist (HARD RULE)
+## Subagent allowlist
 
 Do not use any non-Dreamers agent unless explicitly authorized by user.
 
@@ -57,15 +53,13 @@ Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST 
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
+After spawning a required Dreamers role, wait for its result before continuing. Launch all selected reviewers before waiting in a parallel review lane.
 
 ## Implementation discipline
 
-- **Plan adherence:** edit only files in the plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
-- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
+- **Scope adherence:** edit only files in the task or plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 
@@ -75,8 +69,6 @@ Every commit body includes:
 Co-authored-by: The Dreamers System
 ```
 </dreamers-kernel>
-
-Skill input: use the user's message, including any paths or flags.
 
 ---
 
@@ -119,7 +111,7 @@ If the working tree is on the default branch (no feature-branch diff), halt with
 Phases 1–5 are identical to `dreamers-cleanup-comments`, scoped to the branch-diff file list:
 
 1. **Audit** the branch-diff scope; categorize comment-rules violations.
-2. **Propose** changes; ask the user for approval.
+2. **Propose** changes; asking the user for approval.
 3. **Apply** changes inline; stage with `git add`.
 4. **Optional Vigil review** of changed files. Require one `.dreamers/reviews/vigil-*.md` artifact and read it before applying findings.
 5. **Commit** with message `chore: comment cleanup on feature branch`. Do NOT push.

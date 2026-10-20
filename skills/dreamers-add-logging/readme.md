@@ -12,7 +12,7 @@ flowchart TD
     Summary --> P2
 
     P2["Phase 2 — Proposal + approval"] --> Propose["Present in chat:<br/>files to modify<br/>net adds vs net changes<br/>logger conventions detected"]
-    Propose --> ApprovalGate{"ask-the-user gate"}
+    Propose --> ApprovalGate{"Ask the user"}
     ApprovalGate -->|Other freeform| Revise["Revise proposal"]
     Revise --> Propose
     ApprovalGate -->|Halt for now| HaltA(["Audit complete<br/>no changes applied<br/>resume by re-invoking"])
@@ -22,7 +22,7 @@ flowchart TD
     Apply --> TypeCheck["Run project's type-check<br/>fix type errors"]
     TypeCheck --> P4
 
-    P4["Phase 4 — Optional Vigil review"] --> ReviewGate{"ask-the-user gate"}
+    P4["Phase 4 — Optional Vigil review"] --> ReviewGate{"Ask the user"}
     ReviewGate -->|Other| ReviewGate
     ReviewGate -->|No — skip review| P5
     ReviewGate -->|Yes — review before commit| SpawnVigil["Spawn Vigil<br/>scope = changed files<br/>writes review artifact"]

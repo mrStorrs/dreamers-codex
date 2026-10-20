@@ -1,12 +1,10 @@
 ---
 name: dreamers-explain
-description: "Thoroughly explain any topic, code, document, system, or decision using layered explanations, concrete examples, local evidence, and authoritative sources when needed. Use when the user asks for dreamers-explain, explain this, help me understand, walk me through, or teach me."
+description: "Thoroughly explain any topic, code, document, system, or decision using layered explanations, concrete examples, local evidence, and authoritative sources when needed. Use when the user asks for dreamers-explain, explain this, help me understand, walk me through, teach me."
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools and ask the user directly only for blocking clarification.
-
-Skill input: use the user's message, including any paths, code, URLs, audience, depth, or format directives.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 ---
 
@@ -18,7 +16,6 @@ Skill input: use the user's message, including any paths, code, URLs, audience, 
 
 - Default to read-only work. Inspect relevant files, history, documentation, and external sources; do not modify the subject being explained.
 - Answer in the conversation unless the user explicitly requests a durable artifact.
-- Use `dreamers-research` instead when the requested outcome is a durable, multi-perspective research report with scoped sub-topics and review loops. Do not turn a focused explanation into that pipeline.
 - If no subject or question was provided, halt and ask what to explain.
 
 ## Resolve the request

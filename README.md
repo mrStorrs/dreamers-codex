@@ -1,6 +1,6 @@
 # Dreamers Codex
 
-Dreamers Codex is a Codex-native conversion of the Dreamers orchestration package. It keeps the original planning → tests-first implementation → selected review → Vigil follow-up review → docs → PR flow, but exposes it as Codex skills instead of slash commands.
+Dreamers Codex converts the Dreamers Copilot package into Codex skills: planning → implementation and tests → selected review → Vigil follow-up review → docs → PR. It tracks the upstream refactor merged in [Copilot PR #72](https://github.com/mrStorrs/dreamers-copilot/pull/72).
 
 ## Layout
 
@@ -9,7 +9,7 @@ Dreamers Codex is a Codex-native conversion of the Dreamers orchestration packag
 agents/*.toml                  # Codex-native Dreamers role definitions
 skills/dreamers{,-*}/SKILL.md  # Codex skill entry points
 dreamers/refs/*.md             # shared workflow rules and runtime mapping
-dreamers/templates/*.md        # plan guides, PR, issue, and project templates
+dreamers/templates/*.md        # plan, manifest, PR, issue, and project templates
 dreamers/instructions/*.md     # compatibility instruction files
 ```
 
@@ -27,7 +27,9 @@ Windows:
 .\Install-DreamersCodex.ps1
 ```
 
-By default the installer targets `CODEX_HOME` when set, otherwise `~/.codex`. It copies Codex agent definitions to `agents/`, exact `dreamers` plus `dreamers-*` skills to `skills/`, and shared Dreamers refs/templates/instructions to `dreamers/` under that home. It removes only known managed files from retired `dreamers-full` installations, preserves user-owned files in those directories, and removes a legacy directory only when empty. It also removes the legacy deployed `dreamers/agents/` prompt copies from earlier conversions. Use `--force` in bash or `-Force` in PowerShell to overwrite existing Dreamers files.
+By default the installer targets `CODEX_HOME` when set, otherwise `~/.codex`. It copies the five Codex agents to `agents/`, exact `dreamers` plus `dreamers-*` skills to `skills/`, and shared refs/templates/instructions to `dreamers/`. Use `--force` in bash or `-Force` in PowerShell to overwrite existing Dreamers files.
+
+Installation and removal prune only known managed files from retired Forge, Nova, Sage, `dreamers-full`, and `dreamers-research` installations, obsolete plan guides and refs, and legacy `dreamers/agents/` prompt copies. User-owned files are preserved; retired skill directories are removed only when empty. `dreamers-lite` remains active for task delivery without planning.
 
 ## Use
 
@@ -39,16 +41,21 @@ Mention the skill name in a Codex request:
 
 - `dreamers-help` for read-only orientation, examples, reviewer lanes, gates, specialized choices, and migration guidance. Empty or help-like `dreamers` input routes here before repository or external inspection.
 - `dreamers-plan` for interactive Grill planning that stores every question and response word for word in `grilling-transcript.md`, links it from each right-sized plan, and verifies plan coverage before the review gate.
-- `dreamers-implement` for the tests-first implementation phase of one approved plan. It exits at green validation and does not review or ship.
+- `dreamers-implement` for implementing a task or approved plan with tests. Tasks use stated requirements as acceptance criteria. It returns requirement coverage at green validation and does not review or ship.
 - `dreamers-review` for artifact-backed review selected from plan complexity or explicit plan/user direction. For plan-bound reviews, it reads the linked or sibling verbatim Grill transcript when present and supplies it as intent context. Without a plan, it infers intent from code and context, asking if unclear. Multi-reviewer lanes spawn concurrently.
-- `dreamers` for the complete pipeline. Empty or help-like input routes to `dreamers-help`; task mode invokes `dreamers-plan`, then runs the plan review / implementation-start gate; plan path and manifest modes skip both after plan-quality checks. Per plan it invokes `dreamers-implement`, then `dreamers-review`. The orchestrator applies findings, appends deferred findings to project-root `defered.md`, and owns the major-refactor gate, review-rerun gate, user-testing fix loop, full close-out, final approval, and `dreamers-pr` invocation.
+- `dreamers` for delivering plans. Task input invokes `dreamers-plan` and the implementation-start gate; supplied plan paths or manifests authorize implementation and skip planning and that gate. Each plan goes through implementation, selected review, and up to 3 Vigil fix cycles, followed by triggered user testing, docs, commit, PR approval, and `dreamers-pr`.
+- `dreamers-lite` for task delivery without planning: implementation and tests, Vigil review with up to 2 fix cycles, docs from the uncommitted diff, commit, and PR approval. Both delivery skills halt on blocked review or unresolved findings at the cap.
 - `dreamers-find-refactors` for refactor discovery: select lenses, section the repo, run section-scoped Hone audits, synthesize findings, write Dreamers plan files, then stop.
 - `dreamers-new-project` for project bootstrap: discovery, optional user-approved existing-solutions research, stack selection, brief, and shell plans.
 - `dreamers-explain` for thorough, read-only explanations of topics, code, documents, systems, and decisions, with authoritative sources when needed.
 - `dreamers-pr-resolve` for PR feedback resolution; Vigil reviews accepted changes and deferred Vigil findings are appended to project-root `defered.md`.
-- `dreamers-docs`, `dreamers-pr`, `dreamers-lite`, and the utility skills for narrower flows. `dreamers-pr` also archives shipped Dreamers plan artifacts after PR creation.
+- `dreamers-docs`, `dreamers-pr`, and the utility skills for narrower flows. `dreamers-pr` also archives shipped Dreamers plan artifacts after PR creation.
 
-The converted skills apply `dreamers/refs/codex-runtime.md` to translate composition, delegation, and approval gates into Codex tool usage. Specialized skills invoked by `dreamers` run in the same orchestrator context; only reviewer, documentarian, and researcher roles are spawned as subagents. Sentinel, Probe, Hone, and Vigil are read-only for project files and each writes one durable `.dreamers/reviews/` artifact. `dreamers-review` launches every reviewer in a multi-reviewer lane concurrently, reads all artifacts, and returns findings without applying them. `dreamers` applies those findings and uses `dreamers-review --vigil` for normal follow-up review reruns.
+All plans use Goal, Scope and context, and Acceptance Criteria. Validation checks belong with their ACs. Lite, standard, and complex select review lanes: Vigil; Sentinel + Probe; or Sentinel + Probe + Hone. Explicit plan or user direction overrides that mapping. Useful flow diagrams or UI wireframes belong in Scope and context.
+
+The converted skills apply `dreamers/refs/codex-runtime.md` for Codex resource resolution, delegation, and gates. Specialized skills run in the same orchestrator context. Planning, research, implementation, tests, and git operations stay inline. The only subagents are Sentinel, Probe, Hone, Vigil, and Echo. Reviewers write one `.dreamers/reviews/` artifact each; Echo updates docs. Multi-reviewer lanes launch concurrently, and the caller reads all artifacts before applying findings.
+
+Both delivery skills keep one progress record across conversational detours, including the active branch/PR, next phase, and review count. Related bug reports reopen implementation, validation, review, and docs as needed. Updates to an open PR require approval for the current changes before commit and push; existing authorization is reused. Short standalone helper skills have optional todos.
 
 ## Validation
 

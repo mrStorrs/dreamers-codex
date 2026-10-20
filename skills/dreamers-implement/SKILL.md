@@ -1,41 +1,30 @@
 ---
 name: dreamers-implement
-description: "Implementation skill — runs one cycle against an approved plan. Writes failing tests, implements, runs tests, and exits at green tests with an AC coverage matrix. Does NOT review, push, or open a PR. Use when the user asks for dreamers-implement, implement this plan, execute the plan."
+description: "Implement a task or approved plan with tests; return requirement coverage at green validation. Does NOT review, push, or open a PR. Use when the user asks for dreamers-implement, implement this plan, execute the plan."
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
-Skill input: use the user's message, including any paths or flags.
+## Todo
+- When standalone, a todo is optional. When invoked by an outer delivery skill, complete these steps under its existing todo.
 
-If no plan path was provided, halt + ask. Do not invent a plan.
+## 1: Implement
+- Implement the task or approved plan in `<skill input>` per `comment-rules` + `logging-discipline` + `testing-mandate` (Kernel). For tasks, use the stated requirements as acceptance criteria; no plan file is needed. Stage as you go.
 
-## Codex todo - Before you begin 
-- When standalone, call `update_plan` with a todo list for Step 1 / Step 2 / Step 3. When invoked by an outer delivery skill, complete these steps under its existing plan.
-
-## Step 1 — Read plan + write failing tests
-- Read the plan file. For each AC (G/W/T + `*Layer: ...*`), write at least one failing test at the annotated layer. Stage with `git add`. Don't run yet.
-
-## Step 2 — Implement
-- Edit production files per `comment-rules` + `logging-discipline` + `testing-mandate` (Kernel). Stage as you go.
-
-## Step 3 — Type-check + run tests
-- Run the project's type-check + test command (from `AGENTS.md, CODEX.md, or .github/copilot-instructions.md when present`). Fix inline (max 3 attempts) then halt.
+## 2: Type-check + run tests
+- Run the project's type-check + test command (from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present). Fix inline (max 3 attempts) then halt.
 - Update `./test-benchmarks.md` row after passing (if the project uses one).
 
 ## Exit
-- Return the AC coverage matrix at green tests. `dreamers` invokes `dreamers-review` immediately after a successful implementation.
-- Do not invoke reviewers or perform review-finding fixes, user testing, commit, push, or PR creation.
+- Return requirement/AC coverage and validation results at green tests.
 
-## Dreamers Kernel
 <dreamers-kernel>
-# Dreamers Kernel
-
 ## User overrides
 
 Explicit user instructions can skip or alter phases/actions.
 
-## Subagent allowlist (HARD RULE)
+## Subagent allowlist
 
 Do not use any non-Dreamers agent unless explicitly authorized by user.
 
@@ -50,15 +39,13 @@ Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST 
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
+After spawning a required Dreamers role, wait for its result before continuing. Launch all selected reviewers before waiting in a parallel review lane.
 
 ## Implementation discipline
 
-- **Plan adherence:** edit only files in the plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
-- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
+- **Scope adherence:** edit only files in the task or plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 
@@ -115,21 +102,15 @@ The orchestrator works directly on the feature branch. Unless explicitly request
 </git-workflow>
 
 <testing-mandate>
-# Testing Coverage Mandate (MANDATORY)
-
-Every plan must express its test coverage intent through the Acceptance Criteria's Layer annotations. The planner specifies *what observable outcome* the AC requires and *which test layer* covers it. The implementer (orchestrator at `dreamers-implement` Step 1) writes the actual tests from each AC's Given/When/Then.
-
-## How test coverage is expressed in plans (new format)
+## Plan template
+Every plan must express its test coverage intent through the Acceptance Criteria's Layer annotations.
 
 ```
-<acceptance_criteria>
+## Acceptance Criteria
 1. Given <state>, when <trigger>, then <observable outcome>.
    *Layer: unit.*
 2. Given <state>, when <trigger>, then <observable outcome>.
    *Layer: integration.*
-3. Given <state>, when <trigger>, then <observable outcome>.
-   *Layer: E2E.*
-</acceptance_criteria>
 ```
 
 Layer label set (closed): `unit` / `integration` / `E2E` / `perf`. Compound labels allowed when one assertion serves two purposes (e.g., `*Layer: integration / perf.*`).
@@ -158,14 +139,7 @@ Across all of a plan's ACs, the layer mix must cover the following whenever appl
 - Any flow that requires a real device or emulator.
 - **Navigation change rule (mandatory):** When a plan changes how a nav element behaves (tab tap, modal open, screen transition), the plan must include at least one AC with `*Layer: E2E.*` — not just unit/integration. Probe enforces this in the layer audit and blocks if missing.
 
-**Regression risks**
-- Anything touching existing behavior that could break — call out the specific existing test or flow at risk in the plan's Context section.
-
-If a layer cannot be covered automatically (e.g., camera permission flows), flag it explicitly as a manual-verification requirement in the plan's Verification section with a reason.
-
-## Probe's layer audit (consumes the new format)
-
-During the selected review lane when it includes Probe, the layer audit reads each AC's `*Layer: ...*` annotation to verify coverage at each layer was implemented. Probe blocks the cycle if any AC's annotated layer lacks a corresponding green test.
+If a layer cannot be covered automatically (e.g., camera permission flows), put the manual steps, expected result, and reason under the relevant AC; set `User-testing-required: yes`.
 
 ## Test benchmarks
 
@@ -174,20 +148,17 @@ Each project that uses `dreamers-implement` maintains a `./test-benchmarks.md` f
 - **File path:** `./test-benchmarks.md` at the project root (committed to version control).
 - **Recommended-timeout formula:** `max(last_run_time × 2, 30s)` — the 2× multiplier accounts for machine variance; 30s is a non-negotiable floor.
 - **Orchestrator updates** the row for each test command after every successful test run. **Humans may edit** the `Notes` column to capture CI environment factors or known flakiness.
-- Template: `dreamers/templates/test-benchmarks.md` (catalog-relative; resolves to `$CODEX_HOME/dreamers/templates/test-benchmarks.md` or `~/.codex/dreamers/templates/test-benchmarks.md` at install).
+- Template: `dreamers/templates/test-benchmarks.md` (package-relative; resolves under `$CODEX_HOME` or `~/.codex` for direct installs).
 </testing-mandate>
 
 <comment-rules>
-# Comment Rules
-
 ## Core principle
-Comments must add value that the code cannot express itself. Concise, no fluff, no separators — value only.
+Comments must add value that the code cannot express itself. Concise, no fluff, no separators.
 
 ## When to comment
 - Non-obvious logic: why a non-obvious approach was chosen, constraints, gotchas
 - Public API documentation callers need to use the interface correctly
 - TODO/FIXME with specific, actionable notes
-- License headers
 
 ## When NOT to comment
 - Code that reads naturally from well-named functions and variables
@@ -199,6 +170,7 @@ Comments must add value that the code cannot express itself. Concise, no fluff, 
 - **No spec rationalization** — never write comments arguing a spec permits a pattern; implement cleanly and let review judge
 - **No redundant JSDoc/KDoc** that only repeats the function signature
 - **No em dashes. no exceptions**
+- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
 
 ## Style
 - One line when possible; never exceed two lines for inline comments
@@ -207,27 +179,9 @@ Comments must add value that the code cannot express itself. Concise, no fluff, 
 </comment-rules>
 
 <logging-discipline>
-# Logging Discipline
-
-Rules for log calls — what to write, what to flag in review.
-
 1. **Project rule first.** If `.github/instructions/logging.instructions.md` exists, it is the binding spec.
 2. **Else: match surrounding code.** Existing log calls in the same module and nearest neighbors define:
    - Logger library / import path (do not introduce a new logger where one already exists).
    - Level conventions in use (ERROR / WARN / INFO / DEBUG, or whatever the codebase uses).
    - Message format (structured fields vs interpolated strings, key names, casing).
-3. **Never log:** secrets, tokens, PII, full request/response bodies. No exceptions.
-4. **Neither rule yields a clear answer** → ask the user rather than guessing.
 </logging-discipline>
-
-Do not add log calls outside the plan's scope as while-I'm-here cleanup. If the plan does not call for new logging, leave existing logging untouched unless a finding requires a change.
-
-<agent-recovery>
-# Agent Failure Recovery (mandatory)
-
-When a spawned agent hits a rate limit, crashes, or times out mid-run:
-1. Read whatever workspace files the agent managed to write before failing.
-2. Determine which steps completed and which remain (check workspace outputs, git log, test results).
-3. Complete remaining steps directly (you have the local file and shell tools available in the main conversation) or re-spawn the agent scoped to only the remaining work.
-4. Do not re-run steps that already completed — build on partial progress.
-</agent-recovery>

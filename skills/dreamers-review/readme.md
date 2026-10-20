@@ -4,7 +4,7 @@ Visual map of the selected-lane review skill. Source of truth is `SKILL.md`. **R
 
 ```mermaid
 flowchart TD
-    Start(["dreamers-review input"]) --> Basis{"plan available?"}
+    Start(["dreamers-review &lt;skill input&gt;"]) --> Basis{"plan available?"}
     Basis -->|yes| Transcript{"linked or sibling<br/>Grill transcript?"}
     Transcript -->|readable| BindTranscript["Bind full verbatim transcript<br/>as user-intent context"]
     Transcript -->|referenced but unreadable| BlockTranscript["Block: referenced<br/>transcript unavailable"]
@@ -25,7 +25,7 @@ flowchart TD
     ModeCheck -->|--lens probe| LensP["Single-lens: Probe"]
     ModeCheck -->|--lens hone| LensH["Single-lens: Hone"]
 
-    Triad --> Spawn["Concurrent spawn_agent calls<br/>each prompt MUST include<br/>Do NOT call update_plan"]
+    Triad --> Spawn["Spawn and wait<br/>each prompt MUST include<br/>Do NOT call update_plan"]
     Standard --> Spawn
     Vigil --> Spawn
     Selected --> Spawn
@@ -87,4 +87,4 @@ Selection precedence is explicit user direction or lane flag, then an explicit r
 - **Artifacts are the handoff.** Each selected reviewer writes one `.dreamers/reviews/<reviewer>-*.md` artifact; this skill reads those files before reporting.
 - **All reviewer prompts MUST include** `Do NOT call update_plan.`
 - **`--no-apply` doesn't exist** — this skill is always read-only by design.
-- **Todo ownership is contextual.** Standalone review owns its two-step plan; when invoked by `dreamers`, it completes the phase under the outer plan.
+- **Todo ownership is contextual.** Standalone todos are optional; when invoked by a delivery skill, review completes the phase under its existing todo.
