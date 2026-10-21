@@ -19,11 +19,18 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
 
 $legacyAgentNames = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel")
-$legacyAgentTomlNames = @("bolt")
+$legacyAgentTomlNames = @("bolt", "forge", "nova", "sage")
 $obsoleteManagedFiles = @(
     "dreamers/instructions/comment-rules.instructions.md"
     "dreamers/instructions/git.instructions.md"
     "dreamers/templates/plan-writing-guide.md"
+    "dreamers/refs/hone-architecture-rubric.md"
+    "dreamers/refs/plan-quality.md"
+    "dreamers/refs/plan-selection.md"
+    "dreamers/templates/plan-guide-selector.md"
+    "dreamers/templates/plan-guide-lite.md"
+    "dreamers/templates/plan-guide-standard.md"
+    "dreamers/templates/plan-guide-complex.md"
 )
 
 function Copy-DreamersFiles {
@@ -110,7 +117,7 @@ function Remove-LegacySkillFiles {
     param([string]$SkillsRoot)
 
     $count = 0
-    foreach ($skillName in @("dreamers-full")) {
+    foreach ($skillName in @("dreamers-full", "dreamers-research")) {
         $directory = Join-Path $SkillsRoot $skillName
         foreach ($fileName in @("SKILL.md", "readme.md")) {
             $path = Join-Path $directory $fileName

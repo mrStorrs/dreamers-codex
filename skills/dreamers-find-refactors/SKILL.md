@@ -1,19 +1,17 @@
 ---
 name: dreamers-find-refactors
-description: "Find refactoring opportunities across a codebase. Sections the project, runs section-scoped Hone audits, synthesizes findings, and writes Dreamers plan files. Read-only for project code; no implementation, branch, commit, push, or PR. Use when the user asks for dreamers-find-refactors, find refactors, refactor audit, or refactoring opportunities."
+description: "Find refactoring opportunities across a codebase. Sections the project, runs section-scoped Hone audits, synthesizes findings, and writes Dreamers plan files. Read-only for project code; no implementation, branch, commit, push, or PR. Use when the user asks for dreamers-find-refactors, find refactors, refactor audit, refactoring opportunities."
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 <dreamers-kernel>
-# Dreamers Kernel
-
 ## User overrides
 
 Explicit user instructions can skip or alter phases/actions.
 
-## Subagent allowlist (HARD RULE)
+## Subagent allowlist
 
 Do not use any non-Dreamers agent unless explicitly authorized by user.
 
@@ -28,15 +26,13 @@ Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST 
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
+After spawning a required Dreamers role, wait for its result before continuing. Launch all selected reviewers before waiting in a parallel review lane.
 
 ## Implementation discipline
 
-- **Plan adherence:** edit only files in the plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
-- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
+- **Scope adherence:** edit only files in the task or plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 
@@ -47,8 +43,6 @@ Co-authored-by: The Dreamers System
 ```
 </dreamers-kernel>
 
-Skill input: use the user's message, including any paths or flags.
-
 Read-only discovery skill. It may write only:
 - `.dreamers/refactor-audits/<slug>/sections.md`
 - `.dreamers/refactor-audits/<slug>/summary.md`
@@ -58,9 +52,9 @@ Read-only discovery skill. It may write only:
 
 It must not edit project source, tests, docs, config, dependency files, git state, branches, commits, pushes, or PRs.
 
-## Codex todo - Before you begin
+## Todo - Before you begin
 
-Call `update_plan` with a todo list marking all phases at entry:
+Declare a todo list marking all phases at entry:
 - Phase 1 - Refactor type selection
 - Phase 2 - Project sectioning
 - Phase 3 - Section Hone audits
@@ -83,7 +77,7 @@ Ask the user to choose one or more refactor lenses. Use multi-select when availa
 - `Testability seams`
 - `Custom directive`
 
-If the user supplied an explicit scope or directive in the skill input, carry it into the prompt and still ask for lens selection unless the lens is already unambiguous.
+If the user supplied an explicit scope or directive in `<skill input>`, carry it into the prompt and still ask for lens selection unless the lens is already unambiguous.
 
 If `Custom directive` is selected, capture the custom directive before Phase 2.
 
@@ -162,7 +156,7 @@ Definition of Done:
 - Full-refactor findings include breadth: files, modules, call sites, deletions where known.
 - Observations and Open Questions are present.
 Plan file path: none
-Do NOT call update_plan. The parent Dreamers skill owns the plan.
+Do NOT call update_plan. The skill that invoked you owns its todo.
 ```
 
 Hone artifact format should be the normal artifact contract plus:
@@ -226,29 +220,66 @@ If open questions affect whether a plan should exist, ask the user once before P
 
 ## Phase 5 - Plan generation
 
-Read `dreamers/templates/plan-guide-selector.md`, then read only the selected guide. Default to `standard`; use `complex` for cross-module, API/data, migration, or high-risk refactors. Honor explicit user plan-type override if provided.
+Write `plan-NN-<name>.md` under `.dreamers/plans/feature-refactor-<slug>/` using `plan-format`. For multiple plans, add `manifest.md` using `manifest-format`. Fill the outlines without their outer sync tags.
 
-Create plans using the selected guide under:
+Group findings into the smallest coherent shippable plans. Set `Plan-type` to `lite` for localized work, `standard` for normal feature work, or `complex` for cross-module or high-risk work; honor an explicit user choice. Cite the source Hone artifacts, synthesis summary, and verified affected paths in Scope and context. Include code only when a minimal interface/type signature is an agreed contract.
 
-`.dreamers/plans/feature-refactor-<slug>/`
+<plan-format>
+Use this structure for every plan type. Keep decisions, contracts, UI details, and risks in Scope and context only when relevant. When they clarify the change, include Mermaid diagrams of flows or example UI layouts/wireframes in Scope and context. Acceptance Criteria carry validation intent; do not add separate Approach, Verification, or Test Cases sections.
 
-Plan grouping rules:
-- Group by coherent refactor unit.
-- Do not create one plan per raw Hone finding.
-- Prefer a small number of high-signal plans.
-- Use `manifest.md` when multiple plans share context, constraints, or sequencing.
-- Do not include code snippets except minimal interface/type contracts when the signature is the design decision.
-- Every plan must include Given/When/Then acceptance criteria with `*Layer: ...*`.
-- Verification stays last.
+```markdown
+# Plan-NN: <short title>
 
-Plan content must cite:
-- source Hone artifact path(s)
-- summary path
-- affected files verified by the orchestrator
+**Date:** YYYY-MM-DD
+**Status:** Draft
+**Plan-type:** <lite|standard|complex>
+**Branch:** <feat/slug|fix/slug>
+**User-testing-required:** <yes|no>
+**Grilling transcript:** [grilling-transcript.md](./grilling-transcript.md)
 
-Plan content must not include unresolved open questions.
+## Goal
+<The outcome this plan delivers.>
 
-Self-check every written plan against `plan-guide-selector.md` and its selected guide. Fix structural violations before Phase 6.
+## Scope and context
+<Exact affected paths, relevant current behavior, agreed decisions, constraints, and exclusions.>
+
+## Acceptance Criteria
+<acceptance_criteria>
+1. Given <state>, when <trigger>, then <observable outcome>.
+   *Layer: <unit|integration|E2E|perf>.*
+</acceptance_criteria>
+```
+
+Include the transcript link only when the sibling artifact exists. Compound layers are allowed when one assertion serves both purposes. Under the relevant AC, add a test command or check when project instructions and the outcome are insufficient. For manual checks, include the steps, expected result, and why automation cannot cover them; set `User-testing-required: yes`.
+</plan-format>
+
+<manifest-format>
+```markdown
+# Feature: <short name>
+
+**Date:** YYYY-MM-DD
+**Status:** Draft
+
+## Summary
+<The outcome delivered by the complete feature.>
+
+## Plan sequence
+| Order | Plan file | Summary |
+|---|---|---|
+| 1 | [plan-01-<name>.md](plan-01-<name>.md) | <Outcome> |
+
+## Shared context
+<Only constraints, decisions and their rationale, or contracts needed by multiple plans. Include cross-plan rollback conditions and order when needed.>
+
+## Acceptance Criteria
+<acceptance_criteria>
+1. Given <feature-level state>, when <whole-feature trigger>, then <observable outcome>.
+   *Layer: E2E.*
+</acceptance_criteria>
+```
+
+Keep plans in execution order. Manifest ACs cover outcomes requiring the whole sequence; plan ACs cover each plan. Omit shared context or feature-level ACs when none apply; do not duplicate plan content.
+</manifest-format>
 
 ## Phase 6 - Review gate
 
@@ -269,7 +300,7 @@ Stop and ask the user:
 - `Halt`
 - `Other`
 
-Minor edits may be applied inline to `.dreamers/refactor-audits/` or `.dreamers/plans/` outputs, then re-run the plan self-check and re-present the gate.
+Minor edits may be applied inline to `.dreamers/refactor-audits/` or `.dreamers/plans/` outputs, then re-present the gate.
 
 Major rewrite loops back to the affected phase.
 

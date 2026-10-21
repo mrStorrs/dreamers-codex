@@ -1,127 +1,107 @@
 ---
 name: dreamers-plan
-description: "Planning skill — runs the Grill, stores every question and response verbatim beside linked right-sized plans, selects lite / standard / complex, and hard-stops at review; never implements. Use when the user asks for dreamers-plan, plan a feature, write a plan."
+description: "Grill, critique a proposal, and write concise plans with Goal, Scope and context, and Acceptance Criteria. Preserve the verbatim transcript and stop at plan approval; never implement. Use when the user asks for dreamers-plan, plan a feature, write a plan."
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
-Skill input: use the user's message, including any paths or flags.
+If the task is missing, ask. Work inline and write only `.dreamers/plans/` artifacts; do not change project files or git state. When standalone, own a todo for the three steps below; otherwise use the caller's todo.
 
-If no task description was provided, halt + ask.
-
-Template read at runtime by reading the local file:
-- `dreamers/templates/plan-guide-selector.md` — plan-type selection, override rule, manifest trigger, ship-strategy heuristics.
-- One selected guide only after classification: `plan-guide-lite.md`, `plan-guide-standard.md`, or `plan-guide-complex.md`.
-
-## Codex todo - Before you begin
-- When standalone, call `update_plan` with a todo list for Step 1 / Step 2 / Step 3. When invoked by an outer delivery skill, complete these steps under its existing plan.
-
-## Step 1 — Hash out
-- Write a one-paragraph understanding summary of the goal.
-
+## 1: Grill
 <planning-grill>
-### Phase 1A — Grill
+### Grill
 
-```
-Interview me relentlessly about every aspect of this plan until
-we reach a shared understanding. Walk down each branch of the design
-tree resolving dependencies between decisions one by one.
+Resolve decisions and their dependencies until the goal, scope, and constraints are understood. Explore the codebase for answers before asking the user. For unresolved decisions, ask the user directly, one blocking question at a time, with exactly:
 
-If a question can be answered by exploring the codebase, explore
-the codebase instead.
-
-When a decision still needs user input, use the structured question
-tool (`request_user_input`) if available; otherwise ask directly.
-Ask one blocking question at a time; do not dump a batch of questions
-in chat. Each question must include or allow exactly these choices:
-
-1. Your recommended answer, labeled as recommended.
-2. The strongest viable alternate.
+1. Recommended answer, labeled recommended.
+2. Strongest viable alternative.
 3. `Other` for freeform direction.
 
-After each answer, fold the decision into the shared understanding,
-then continue to the next unresolved branch.
-```
+Incorporate each answer before continuing. Do not propose while required decisions remain open.
 
-Record the Grill exchange verbatim while it happens. Preserve every planner
-question and every user response in chronological order, exactly as sent or
-received. Do not summarize, paraphrase, normalize, combine, correct, or omit
-text. For `request_user_input`, include the complete presented question,
-choice labels, and choice descriptions. Preserve direct questions and
-separate responses as separate entries.
-
-In Step 2, when the feature plan directory is known, write the accumulated
-exchange to `.dreamers/plans/feature-<slug>/grilling-transcript.md` with only
-speaker/sequence headings added around the unchanged message text. If no Grill
-question and response occurred, do not create an empty transcript.
+Capture every question and response verbatim, in order, including complete tool questions, choice labels, and descriptions. Keep responses separate; never summarize, paraphrase, normalize, or omit text. When writing plans, save the exchange to `.dreamers/plans/feature-<slug>/grilling-transcript.md`, adding only speaker/sequence headings. Do not create an empty transcript.
 </planning-grill>
 
-- Identify ambiguities, gaps, open decisions. Ask the user about unresolved decision branches. Do not draft the proposal while required decisions are still open.
+## 2: Generate plan(s) proposal
+- generate plans following `plan-format`
+- plans should be the smallest shippable chunks. do not break up arbitrarily if doing so would cause more work.
+- when more than one plans are needed generate a manifest.md
 
-### Phase 1B — Proposal review
+## 3: Propose to user
+- If: change requires a single plan. then present the full plan to the user.
+- Else: Then present the manifest when task requires multiple plans.
 
-- Draft the proposal, then enter proposal review before approval. Present the proposal + critique together by asking the user.
-- Proposal review stress-tests the proposal for pitfalls, weak spots, tradeoffs, hidden assumptions, likely failure modes, scope risks, and simpler counter-proposals. Approval is valid only after this critique is shown.
-- If the user responds with questions, challenges, partial answers, corrections, or counter-proposals, fully review and answer them with reasoning, implications, and a recommended next move. Fold the result into the proposal, re-critique, and re-present proposal review until approved.
-- Read `plan-guide-selector.md`. Classify plan type as `lite`, `standard`, or `complex`; explicit user plan-type override wins. Decide plan count + manifest per the selector. Manifest backfill check: existing `feature-<slug>/` + `plan-01-*.md` + no `manifest.md` → manifest MUST be produced in Step 2.
+Present the proposal and any critiques by asking the user: risks, assumptions, tradeoffs, and simpler alternatives. Answer questions and corrections with reasoning and a recommendation; revise and re-present until approved.
 
-## Step 2 — Write plans
-- Read only the selected guide in full by reading the local file: `plan-guide-lite.md`, `plan-guide-standard.md`, or `plan-guide-complex.md`.
-- `mkdir -p .dreamers/plans/feature-<slug>/`.
-- If Phase 1A produced a Grill exchange, write `grilling-transcript.md` in the feature directory before writing plans. Preserve every question and response word for word per `planning-grill`; never replace the transcript with a summary.
-- Write each `plan-NN-<name>.md` + manifest if Step 1 decided yes. Each plan MUST include `**Plan-type:** <lite|standard|complex>` and follow the selected guide. When `grilling-transcript.md` exists, each plan MUST include `**Grilling transcript:** [grilling-transcript.md](./grilling-transcript.md)`. Keep the smallest plan that preserves quality.
-- Component-usage check: for shared components, grep the project source root for callers; include them in scope.
-- Citation accuracy: verify every cited artifact exists; mark unverifiable citations as "assumption pending verification."
-- Self-check the written plans against the selected guide + selector mandatory checks before exit. Hard fail on any structural rule violation → halt + fix + re-check.
-- Plan coverage review: compare the written plan(s) against the approved proposal, proposal critique, the verbatim Grill transcript when present, and all user-discussed questions, corrections, decisions, and constraints. Every accepted item MUST appear in the smallest selected-guide section that preserves meaning. If any item is missing, ambiguous, contradicted, or weakened, fix the plan(s), then re-run citation accuracy + structural self-check + coverage review before Step 3.
+## 3: Write plan(s)
+- Create `.dreamers/plans/feature-<slug>/`.
+- Write numbered `plan-NN-<name>.md` files using `plan-format`; add `manifest.md` when multi-plan task
 
-## Step 3 — Review gate
-- Present plan paths by asking the user with: `Approved` / `Minor edit` / `Major rewrite` / `Halt` / `Other`.
-- Minor edits applied inline + re-run Step 2 self-check + re-present.
-- Major rewrite → loop back to Step 1 with the correction as new context.
+## 3: Review gate
 
-## Exit
-- Surface plan paths. Never invoke implementation. When standalone, hard stop; when invoked by an outer delivery skill, return control after surfacing the paths.
+Present plan paths by asking the user: `Approved` / `Minor edit` / `Major rewrite` / `Halt` / `Other`.
 
-## Dreamers Kernel
-<dreamers-kernel>
-# Dreamers Kernel
+- Minor edit: apply, repeat Step 2 checks, and re-present.
+- Major rewrite: return to Step 1 with the correction.
+- Halt: stop and surface paths.
+- Other: follow the user's direction.
 
-## User overrides
+On approval, return plan paths. If standalone use and not invoked from an outerskill, ask user if they would like to proceed with `dreamers-implement`
 
-Explicit user instructions can skip or alter phases/actions.
+<plan-format>
+Use this structure for every plan type. Keep decisions, contracts, UI details, and risks in Scope and context only when relevant. When they clarify the change, include Mermaid diagrams of flows or example UI layouts/wireframes in Scope and context. Acceptance Criteria carry validation intent; do not add separate Approach, Verification, or Test Cases sections.
 
-## Subagent allowlist (HARD RULE)
+```markdown
+# Plan-NN: <short title>
 
-Do not use any non-Dreamers agent unless explicitly authorized by user.
+**Date:** YYYY-MM-DD
+**Status:** Draft
+**Plan-type:** <lite|standard|complex>
+**Branch:** <feat/slug|fix/slug>
+**User-testing-required:** <yes|no>
+**Grilling transcript:** [grilling-transcript.md](./grilling-transcript.md)
 
-## Subagent prompt — required content
+## Goal
+<The outcome this plan delivers.>
 
-Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST include in the prompt:
-- **Context** — what this agent is being asked to do and why
-- **Prior work** — what was done previously, with absolute paths to any output files
-- **What is needed** — specific deliverable
-- **Constraints** — hard rules the agent must not violate
-- **Definition of Done** — how to know the work is complete
-- **Plan file path** — absolute path to the relevant plan file (if applicable)
-- **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
+## Scope and context
+<Exact affected paths, relevant current behavior, agreed decisions, constraints, and exclusions.>
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
-
-## Implementation discipline
-
-- **Plan adherence:** edit only files in the plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
-- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
-- **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
-- **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
-
-## Commit trailer
-
-Every commit body includes:
-
+## Acceptance Criteria
+<acceptance_criteria>
+1. Given <state>, when <trigger>, then <observable outcome>.
+   *Layer: <unit|integration|E2E|perf>.*
+</acceptance_criteria>
 ```
-Co-authored-by: The Dreamers System
+
+Include the transcript link only when the sibling artifact exists. Compound layers are allowed when one assertion serves both purposes. Under the relevant AC, add a test command or check when project instructions and the outcome are insufficient. For manual checks, include the steps, expected result, and why automation cannot cover them; set `User-testing-required: yes`.
+</plan-format>
+
+<manifest-format>
+```markdown
+# Feature: <short name>
+
+**Date:** YYYY-MM-DD
+**Status:** Draft
+
+## Summary
+<The outcome delivered by the complete feature.>
+
+## Plan sequence
+| Order | Plan file | Summary |
+|---|---|---|
+| 1 | [plan-01-<name>.md](plan-01-<name>.md) | <Outcome> |
+
+## Shared context
+<Only constraints, decisions and their rationale, or contracts needed by multiple plans. Include cross-plan rollback conditions and order when needed.>
+
+## Acceptance Criteria
+<acceptance_criteria>
+1. Given <feature-level state>, when <whole-feature trigger>, then <observable outcome>.
+   *Layer: E2E.*
+</acceptance_criteria>
 ```
-</dreamers-kernel>
+
+Keep plans in execution order. Manifest ACs cover outcomes requiring the whole sequence; plan ACs cover each plan. Omit shared context or feature-level ACs when none apply; do not duplicate plan content.
+</manifest-format>

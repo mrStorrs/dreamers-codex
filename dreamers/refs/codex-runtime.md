@@ -8,27 +8,29 @@ Use this reference when executing Dreamers skills that were converted from the C
 
 ## Resource Resolution
 Resolve Dreamers shared files in this order:
-1. Plugin-local files next to the skill: `../dreamers/refs`, `../dreamers/templates`.
+1. Package-local files relative to the skill directory: `../../dreamers/refs`, `../../dreamers/templates`.
 2. Direct-install files under `$CODEX_HOME/dreamers` or `~/.codex/dreamers`.
 3. Project-local compatibility files under `.github/dreamers` when working in a repository that still carries the Copilot layout.
 
-Dreamers role definitions are Codex agents. Resolve them from plugin-local `../agents/*.toml` or direct-install `$CODEX_HOME/agents/*.toml` / `~/.codex/agents/*.toml`. Do not deploy or resolve role definitions from `$CODEX_HOME/dreamers/agents`.
+Dreamers role definitions are Codex agents. Resolve them from package-local `../../agents/*.toml` relative to the skill directory, or direct-install `$CODEX_HOME/agents/*.toml` / `~/.codex/agents/*.toml`. Do not deploy or resolve role definitions from `$CODEX_HOME/dreamers/agents`.
 
 Project instructions may live in `AGENTS.md`, `CODEX.md`, `.github/copilot-instructions.md`, or project-specific docs. Read whichever exist and let more local project instructions override general Dreamers defaults.
 
 ## User Gates
 - A gate is mandatory when the skill asks for approval, ship strategy, major-refactor disposition, user testing, PR approval, or continuation.
 - Ask the user directly and wait. If a structured input tool is available, it may be used, but do not silently continue past a gate.
+- Follow the active runtime's input-tool restrictions; use chat for approvals when a structured tool cannot request them. Explicit authorization already given for the current action satisfies its gate.
 - On halt, provide the exact skill name and input needed to resume.
 
 ## Planning And Progress
-- The parent Dreamers skill owns `update_plan`.
-- Spawned reviewer, documentarian, or researcher roles must not call `update_plan`; their output is the handoff.
+- The outermost Dreamers skill owns progress tracking with `update_plan` when available; otherwise keep a concise progress record in the conversation. Helper skills may make standalone todos optional.
+- Delivery skills keep the goal, owning skill, branch/PR, next phase, and review count across follow-ups per `Delivery continuation` in `dreamers/instructions/dreamers.instructions.md`. Questions and detours do not reset the workflow or review cap.
+- Spawned reviewer or documentarian roles must not call `update_plan`; their output is the handoff.
 
 ## Delegation
-- Use `tool_search` to discover `multi_agent_v1` if multi-agent tools are not visible.
-- Use `multi_agent_v1.spawn_agent` only when the user invoked a Dreamers workflow that explicitly includes delegated reviewer, documentarian, or researcher roles, such as `dreamers-review`, `dreamers-docs`, `dreamers-research`, or `dreamers`.
-- Spawn by Codex `agent_type` using the Dreamers role name (`sentinel`, `probe`, `hone`, `vigil`, `echo`, `sage`, `forge`, or `nova`). Put the workflow-specific context in `message`; do not paste or load Markdown role prompt files.
+- Use the available Codex `spawn_agent` and `wait_agent` tools. References to `multi_agent_v1` also apply to the equivalent `collaboration` namespace when that is the runtime's tool surface.
+- Delegate only when the invoked Dreamers workflow explicitly includes reviewer or documentarian roles, such as `dreamers-review`, `dreamers-docs`, `dreamers-find-refactors`, or `dreamers`.
+- Spawn by Codex `agent_type` using one of the five Dreamers role names: `sentinel`, `probe`, `hone`, `vigil`, or `echo`. Put the workflow-specific context in `message`; do not paste or load Markdown role prompt files. Planning, research, implementation, tests, and git operations stay inline.
 - For a multi-reviewer lane, launch every selected reviewer concurrently before waiting for results. Never spawn and await reviewers sequentially.
 - If multi-agent tools are unavailable, run the requested lens inline and label the output with the role name.
 

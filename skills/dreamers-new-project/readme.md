@@ -38,11 +38,11 @@ flowchart TD
     RepoCheck -->|No| VisGate{"Public or<br/>Private?"}
     VisGate -->|Other| VisGate
     VisGate -->|Public or Private| CreateRepo["git init<br/>gh repo create<br/>create .gitignore + .dreamers/ dirs"]
-    CreateRepo --> WriteCopilot
-    SkipInit --> WriteCopilot["Create project-level<br/>AGENTS.md, CODEX.md, or .github/copilot-instructions.md when present"]
-    WriteCopilot --> P5
+    CreateRepo --> WriteInstructions
+    SkipInit --> WriteInstructions["Create project-level<br/>AGENTS.md"]
+    WriteInstructions --> P5
 
-    P5["Phase 5 — Shell plans"] --> ReadShell["Read shell-plan.md template"]
+    P5["Phase 5 — Shell plans"] --> ReadShell["Use embedded shell-plan outline"]
     ReadShell --> WriteShells["For each milestone in brief:<br/>create shell plan in<br/>.dreamers/plans/feature-slug/"]
     WriteShells --> ListShells["List all plans in chat<br/>with file paths + summaries"]
     ListShells --> P6
@@ -57,11 +57,12 @@ flowchart TD
     classDef phase fill:#166534,stroke:#14532d,stroke-width:2px,color:#fff
 
     class AllAnswered,ResearchGate,StackGate,BriefGate,RepoCheck,VisGate,ReviewGate gate
-    class P1,P15,P2,P3,P4,P5,P6,Discovery,ResearchScope,Landscape,ResearchSummary,Recommend,ReviseStack,WriteBrief,UpdateBrief,SkipInit,CreateRepo,WriteCopilot,ReadShell,WriteShells,ListShells,UpdatePlans phase
+    class P1,P15,P2,P3,P4,P5,P6,Discovery,ResearchScope,Landscape,ResearchSummary,Recommend,ReviseStack,WriteBrief,UpdateBrief,SkipInit,CreateRepo,WriteInstructions,ReadShell,WriteShells,ListShells,UpdatePlans phase
 ```
 
 ## Key invariants
 
+- **Shell plans are drafts.** Use the smallest coherent shippable chunks, a manifest for multiple plans, and `Plan-type` for reviewer selection. Expand them through `dreamers-plan` before implementation.
 - **No disk writes until Phase 3.** Phases 1–2 are conversation-only. Phase 3 first writes anything (the brief).
 - **Research requires opt-in.** Phase 1.5 performs no web research until the user explicitly approves it; skipping research is a valid completion path.
 - **Approval-gated phase transitions.** Phases 1.5, 2, 3, and 6 each have a user gate.

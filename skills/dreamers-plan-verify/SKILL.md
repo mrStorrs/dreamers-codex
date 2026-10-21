@@ -4,16 +4,14 @@ description: "Inline drift check on a plan against current codebase reality. Re-
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 <dreamers-kernel>
-# Dreamers Kernel
-
 ## User overrides
 
 Explicit user instructions can skip or alter phases/actions.
 
-## Subagent allowlist (HARD RULE)
+## Subagent allowlist
 
 Do not use any non-Dreamers agent unless explicitly authorized by user.
 
@@ -28,15 +26,13 @@ Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST 
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
+After spawning a required Dreamers role, wait for its result before continuing. Launch all selected reviewers before waiting in a parallel review lane.
 
 ## Implementation discipline
 
-- **Plan adherence:** edit only files in the plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
-- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
+- **Scope adherence:** edit only files in the task or plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 
@@ -47,25 +43,17 @@ Co-authored-by: The Dreamers System
 ```
 </dreamers-kernel>
 
-Skill input: use the user's message, including any paths or flags.
-
 ---
 
 ## Todo list
 
-The outermost active Dreamers skill owns the plan. If this skill is the entry point, declare via `update_plan`:
-- [ ] Read plan file
-- [ ] Read current code (cited paths, signatures, data models, test files)
-- [ ] Drift assessment (compare plan assertions against current state)
-- [ ] Report (no change or drift-detected list)
-
-Mark each item `in_progress` when starting, `completed` when done. Never batch completions at the end.
+When standalone, a todo is optional. When invoked by an outer delivery skill, complete this check under its existing todo.
 
 ---
 
 ## The check
 
-Read the plan file passed as the skill input. If no plan path is provided, halt and ask the user.
+Read the plan file passed as `<skill input>`. If no plan path is provided, halt and ask the user.
 
 For each element the plan references, verify against the current codebase:
 
@@ -74,17 +62,17 @@ For each element the plan references, verify against the current codebase:
 3. **Data model shapes** — if the plan references a DB table, model class, or interface, read it and verify the plan's assumptions hold.
 4. **Test files / cases** — if the plan cites existing tests as a starting point, verify those tests exist and are scoped as the plan describes.
 5. **Acceptance Criteria measurability** — re-evaluate whether each AC is still measurable against the current code. (An AC like "user can filter by date" requires a filter mechanism to exist or be plannable; if the underlying API has changed, the AC may need rewording.)
-6. **Constraints** — re-check whether stated constraints (technical, process, hard rules) still hold (e.g., "must not change the existing API" — does the API still look as the plan described?). Note: in the new plan format, risks are folded into Constraints as hard rules; there is no separate Risks section to verify.
+6. **Constraints** — re-check whether stated constraints (technical, process, hard rules) still hold (e.g., "must not change the existing API" — does the API still look as the plan described?). In compact plans, constraints and relevant risks are in Scope and context; validation instructions are attached to ACs.
 
 ## Output
 
 Return ONE of:
 
 - **`No change — proceed`** — the plan still applies as written. The user / orchestrator can invoke `dreamers-implement <plan>` confidently.
-- **`Drift detected — halt`** — list specific drift items in chat. Each item identifies WHERE in the plan (AC #, §Scope entry, Test Case ID, or line range) and WHAT diverged:
+- **`Drift detected — halt`** — list specific drift items in chat. Each item identifies WHERE in the plan (AC #, Scope and context entry, or line range) and WHAT diverged:
   ```
   - AC #3 — expected: filter by date range / actual: filter API removed in last cycle
-  - §Scope file list — expected: src/auth/session.ts / actual: file renamed to src/auth/sessionStore.ts
+  - Scope and context — expected: src/auth/session.ts / actual: file renamed to src/auth/sessionStore.ts
   ```
   The user decides whether to:
   - Revise the plan inline (and re-run `dreamers-plan-verify`).

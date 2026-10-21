@@ -4,20 +4,18 @@ description: "Resolve unresolved PR review comments inline. Orchestrator decides
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 Resolve unresolved PR review comments. All work inline except required artifact-backed Vigil review over accepted changes.
 
 Follow the Dreamers Kernel and output discipline from `Codex global instructions, if configured`.
 
 <dreamers-kernel>
-# Dreamers Kernel
-
 ## User overrides
 
 Explicit user instructions can skip or alter phases/actions.
 
-## Subagent allowlist (HARD RULE)
+## Subagent allowlist
 
 Do not use any non-Dreamers agent unless explicitly authorized by user.
 
@@ -32,15 +30,13 @@ Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST 
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
+After spawning a required Dreamers role, wait for its result before continuing. Launch all selected reviewers before waiting in a parallel review lane.
 
 ## Implementation discipline
 
-- **Plan adherence:** edit only files in the plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
-- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
+- **Scope adherence:** edit only files in the task or plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 
@@ -50,8 +46,6 @@ Every commit body includes:
 Co-authored-by: The Dreamers System
 ```
 </dreamers-kernel>
-
-Skill input: use the user's message, including any paths or flags.
 
 ---
 
@@ -70,7 +64,7 @@ Mark each item `in_progress` when starting, `completed` when done. Never batch c
 
 ## Step 1 — Discover open PRs
 
-Run `gh pr list --state open` to find all live PRs. If a specific PR is provided in the skill input, use that one. If multiple are open and none is specified, ask the user with each open PR as a choice (format: `#NUM — <title>`) plus `"Other"` for freeform input. If exactly one is open, use it without prompting.
+Run `gh pr list --state open` to find all live PRs. If a specific PR is provided in `<skill input>`, use that one. If multiple are open and none is specified, ask the user with each open PR as a choice (format: `#NUM — <title>`) plus `"Other"` for freeform input. If exactly one is open, use it without prompting.
 
 ## Step 2 — Pull unresolved review threads (GraphQL only)
 
@@ -84,11 +78,11 @@ Extract only threads where `isResolved: false`. Capture each thread's `id`, `pat
 
 ## Step 3 — Decide accept / reject per thread (inline)
 
-**HARD STOP — fix application is inline.** The orchestrator (this skill) edits files directly using Edit / Write / Bash tools to apply accepted PR-feedback fixes. **Do NOT spawn any subagent to write the fix code.** Specifically:
-- ❌ `general-purpose` or other non-Dreamers delegation → FORBIDDEN. There is no general-purpose fallback for implementation.
-- ❌ `claude` or any other host-runtime agent type → FORBIDDEN.
-- ❌ `forge` / `nova` / `bolt` as delegated agent types → FORBIDDEN for this skill (see `dreamers-kernel.md` § "Subagent allowlist").
-- ✅ The only Dreamers agent type you may spawn from this skill is `vigil` in Step 5 (review of the applied fixes). Nothing else.
+**HARD STOP — fix application is inline.** The orchestrator (this skill) edits files directly using file and shell tools to apply accepted PR-feedback fixes. **Do NOT spawn any subagent to write the fix code.** Specifically:
+- ❌ `agent_type: "general-purpose"` → FORBIDDEN. There is no general-purpose fallback for implementation.
+- ❌ `agent_type: "claude"` or any other host-runtime agent → FORBIDDEN.
+- ❌ Retired `agent_type` roles (`forge`, `nova`, `bolt`) → FORBIDDEN.
+- ✅ The only `agent_type` value you may spawn from this skill is `vigil` in Step 5 (review of the applied fixes). Nothing else.
 
 For each unresolved thread, judge whether to accept or reject the comment. You are the implementation expert and have full authority. **Do not feel obligated to accept every comment** — if a suggestion conflicts with the plan, the architecture, or is simply wrong, reject it and say why.
 
@@ -105,7 +99,7 @@ If **reject** → no edit. Note in chat for the final report.
 ## Step 4 — Run tests after accepted changes
 
 If any threads were accepted:
-- Run the project's type-check command (from project `AGENTS.md, CODEX.md, or .github/copilot-instructions.md when present`). Fix any errors before proceeding.
+- Run the project's type-check command (from project `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present). Fix any errors before proceeding.
 - Run the project's test command. Fix any regressions inline. Up to 3 attempts.
 
 If no threads were accepted, skip to Step 6.
@@ -114,10 +108,10 @@ If no threads were accepted, skip to Step 6.
 
 Run Vigil for accepted PR-feedback fixes. Scope is restricted to ONLY the files touched by accepted threads.
 
-Use `multi_agent_v1.spawn_agent` with `agent_type: vigil` for the required review. Do not spawn Sentinel, Probe, or Hone from this skill; selected reviewer lanes belong to `dreamers-review`.
+Use `multi_agent_v1.spawn_agent` with `agent_type: vigil` and wait for the required review. Do not spawn Sentinel, Probe, or Hone from this skill; selected reviewer lanes belong to `dreamers-review`.
 
 Common prompt context for Vigil (subagent prompt rule — include verbatim):
-- **Todo discipline:** "Do NOT call `update_plan`. The orchestrator owns the todo."
+- **Todo discipline:** "Do NOT call `update_plan`. The orchestrator owns the todo." (per `dreamers-kernel.md` § "Single-owner todo")
 - Plan file: none (ad-hoc PR-feedback work, no plan binding) — mark plan-alignment summary as N/A
 - Scope: list of files changed by accepted threads from `git status`
 - Branch + default branch names
@@ -127,7 +121,7 @@ Common prompt context for Vigil (subagent prompt rule — include verbatim):
 - Write exactly one `.dreamers/reviews/vigil-*.md` artifact.
 - Return only status, counts, artifact path, blocked reason, and open questions.
 
-Read the returned artifact before applying findings. Apply findings from the artifact inline per the shared `dreamers` apply-findings rules:
+Read the returned artifact before applying findings. Apply findings from the artifact inline per the shared dreamers apply-findings rules:
 
 1. Sort findings by severity.
 2. Resolve conflicts per the rule (correctness/security > test-coverage > simplicity).

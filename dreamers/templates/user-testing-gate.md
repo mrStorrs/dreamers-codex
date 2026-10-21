@@ -1,8 +1,9 @@
+<user-testing-gate>
 # User Testing Gate Template
 
 Use this template whenever the Dreamers pipeline pauses for user testing.
 
-Use the structured user input tool when available. If no structured input tool is available, ask the user directly with the same prompt sections and options.
+Ask the user directly and wait. Preserve the prompt sections and choices below.
 
 ## Prompt body
 
@@ -16,8 +17,8 @@ Include:
 - Plan ID + path.
 - A one-sentence summary of what changed in this cycle.
 - Every special action required before testing, including build type, packaging, deploy, install, cache reset, seed data, feature flag, account state, device/browser, or distribution steps.
-- Build/distribute steps from project instructions when present.
-- If project instructions are absent and a build/distribution action is needed, include a numbered step asking the user to perform the project-specific build/distribution manually.
+- Build/distribute steps from `.github/instructions/build.instructions.md` when present.
+- If `.github/instructions/build.instructions.md` is absent and a build/distribution action is needed, include a numbered step asking the user to perform the project-specific build/distribution manually.
 - Every manual test the user should perform, derived from the plan ACs and any reviewer-requested validation.
 - The expected result for each test step.
 
@@ -47,3 +48,4 @@ Provide exactly these three options:
 - `Approved` -> continue the pipeline.
 - `Bug found (enter text)` -> capture the bug text, fix inline, rerun required automated validation, then present this same user-testing gate again.
 - `Other (enter text)` -> follow the user's direction. If the result still needs user testing sign-off, present this same gate again.
+</user-testing-gate>

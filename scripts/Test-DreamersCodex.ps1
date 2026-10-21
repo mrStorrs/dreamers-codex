@@ -5,6 +5,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+& (Join-Path $Root "scripts/sync-refs.ps1") -Verify
+if ($LASTEXITCODE -ne 0) { throw "Inlined ref verification failed." }
 $errors = New-Object System.Collections.Generic.List[string]
 
 function Add-Error {
@@ -45,7 +47,7 @@ function Assert-Patterns {
     }
     $content = Get-Content -Raw $Path
     foreach ($entry in $Patterns.GetEnumerator()) {
-        if ($content -notmatch $entry.Value) {
+        if ($content -notmatch ("(?ms)" + $entry.Value)) {
             Add-Error "Missing $($entry.Key) contract in $Path"
         }
     }
@@ -62,13 +64,19 @@ function Assert-NoPatterns {
     }
     $content = Get-Content -Raw $Path
     foreach ($entry in $Patterns.GetEnumerator()) {
-        if ($content -match $entry.Value) {
+        if ($content -match ("(?ms)" + $entry.Value)) {
             Add-Error "Unexpected $($entry.Key) contract in $Path"
         }
     }
 }
 
-$expectedAgents = @("echo", "forge", "hone", "nova", "probe", "sage", "sentinel", "vigil")
+$expectedAgents = @(
+    "echo",
+    "hone",
+    "probe",
+    "sentinel",
+    "vigil"
+)
 $expectedSkills = @(
     "dreamers",
     "dreamers-add-logging",
@@ -77,17 +85,16 @@ $expectedSkills = @(
     "dreamers-cleanup-comments-branch",
     "dreamers-docs",
     "dreamers-explain",
-    "dreamers-help",
-    "dreamers-lite",
     "dreamers-find-refactors",
+    "dreamers-help",
     "dreamers-implement",
     "dreamers-issue",
+    "dreamers-lite",
     "dreamers-new-project",
     "dreamers-plan",
     "dreamers-plan-verify",
     "dreamers-pr",
     "dreamers-pr-resolve",
-    "dreamers-research",
     "dreamers-review",
     "dreamers-simplify",
     "dreamers-test",
@@ -99,22 +106,21 @@ $expectedRefs = @(
     "comment-rules.md",
     "dreamers-kernel.md",
     "git-workflow.md",
-    "hone-architecture-rubric.md",
     "logging-discipline.md",
+    "manifest-format.md",
+    "plan-format.md",
     "planning-grill.md",
     "project-bootstrap.md",
     "reviewer-findings-format.md",
-    "testing-mandate.md"
+    "shell-plan.md",
+    "testing-mandate.md",
+    "user-testing-gate.md"
 )
 $expectedTemplates = @(
     "discovery-questions.md",
     "github-issue.md",
     "logging-standards.md",
     "manifest.md",
-    "plan-guide-complex.md",
-    "plan-guide-lite.md",
-    "plan-guide-selector.md",
-    "plan-guide-standard.md",
     "plan.md",
     "pr-description.md",
     "project-brief.md",
@@ -133,13 +139,12 @@ $expectedSkillReadmes = @(
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
     "dreamers-explain",
-    "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
+    "dreamers-lite",
     "dreamers-new-project",
     "dreamers-plan",
     "dreamers-pr-resolve",
-    "dreamers-research",
     "dreamers-review"
 )
 
@@ -239,7 +244,7 @@ if (Test-Path $catalogPath) {
         foreach ($required in @("skill:dreamers", "skill:dreamers-help")) {
             if ($required -notin $items) { Add-Error "Catalog missing item: $required" }
         }
-        foreach ($retired in @("skill:dreamers-full")) {
+        foreach ($retired in @("skill:dreamers-full", "skill:dreamers-research", "agent:forge", "agent:nova", "agent:sage")) {
             if ($retired -in $items) { Add-Error "Catalog retains retired item: $retired" }
         }
         foreach ($item in $catalog.items) {
@@ -259,7 +264,7 @@ if (Test-Path $catalogPath) {
             foreach ($required in @("skill:dreamers", "skill:dreamers-help")) {
                 if ($required -notin $members) { Add-Error "Collection missing member: $required" }
             }
-            foreach ($retired in @("skill:dreamers-full")) {
+            foreach ($retired in @("skill:dreamers-full", "skill:dreamers-research", "agent:forge", "agent:nova", "agent:sage")) {
                 if ($retired -in $members) { Add-Error "Collection retains retired member: $retired" }
             }
         }
@@ -278,20 +283,18 @@ if (Test-Path $catalogPath) {
 }
 
 Assert-Patterns (Join-Path $skillRoot "dreamers/SKILL.md") @{
-    "help route" = '## Route input.*Empty or whitespace-only input.*`help`.*`--help`.*`-h`.*invoke `dreamers-help`.*read-only'
-    "unrecognized-input halt" = 'Otherwise halt and ask for a task, plan path, manifest, or help'
-    "three input modes" = '(?s)## Modes.*Task description.*Plan path\(s\).*manifest\.md'
-    "planning delegation" = '(?s)## Phase 1.*Invoke `dreamers-plan`'
-    "implementation then review" = '(?s)### Steps 1.3.*Invoke `dreamers-implement.*### Step 4.*Invoke `dreamers-review'
-    "complexity-selected review" = 'selects Vigil, Sentinel \+ Probe, or Sentinel \+ Probe \+ Hone from plan complexity or explicit plan/user direction'
-    "major-refactor gate" = '(?s)Major-refactor gate.*Apply now.*Defer — save to defered\.md.*Other'
-    "deferred findings ledger" = '(?s)Defer.*do NOT apply or create a follow-up plan.*defered\.md.*# Deferred Suggestions.*never overwrite.*Stage `defered\.md`'
-    "major-change rerun gate" = '(?s)Run Vigil.*Run full triad.*Run selected dreamers-review lane.*Skip reviewer rerun.*Other'
-    "templated user testing" = '(?s)user-testing-gate\.md.*Testing steps.*Notes.*Approved.*Bug found \(enter text\).*Other \(enter text\)'
-    "full close-out" = '(?s)Phase 3.*improvements\.md.*dreamers-docs --branch.*Write retro.*Final commit.*User approval gate.*dreamers-pr'
+    "help route before inspection" = '(?ms)Empty input.*`help`.*`--help`.*`-h`.*dreamers-help.*stop before inspecting'
+    "artifact authorization" = '(?ms)Supplied artifacts are implementation authorization.*do not re-plan.*ask to start'
+    "task planning and start gate" = '(?ms)Phase 1:.*Invoke `dreamers-plan.*Approved — start implementation.*start INCREMENTAL.*start ATOMIC'
+    "implementation then selected review" = '(?ms)### Implement and review.*dreamers-implement.*dreamers-review --branch'
+    "capped Vigil fixes" = '(?ms)dreamers-review --vigil --branch.*up to 3 times.*Ask before major refactors.*defered\.md'
+    "blocked or unresolved review stops" = '(?ms)Halt.*blocked review or unresolved findings at the cap'
+    "triggered user testing" = '(?ms)### User testing.*manual verification.*user-testing-gate.*staged \+ unstaged.*review cap'
+    "ship strategies" = '(?ms)ATOMIC.*commit.*do not push.*INCREMENTAL.*dreamers-docs --branch.*confirm merge'
+    "close-out order" = '(?ms)Phase 3.*dreamers-docs --branch.*commit remaining changes.*Approved.*dreamers-pr'
 }
 Assert-Patterns (Join-Path $skillRoot "dreamers-help/SKILL.md") @{
-    "Codex runtime preamble" = '## Codex runtime.*codex-runtime\.md.*Skill input: use the user''s message'
+    "Codex runtime preamble" = '## Codex runtime.*codex-runtime\.md.*user''s message as skill input'
     "read-only boundary" = '## Boundary.*read-only guidance.*Do not inspect or change'
     "primary examples" = 'dreamers add offline export.*dreamers feature-search/plan-01-indexing\.md.*dreamers feature-search/manifest\.md'
     "review lanes" = 'lite plans use Vigil.*standard plans use Sentinel \+ Probe.*complex plans use Sentinel \+ Probe \+ Hone'
@@ -305,15 +308,15 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-pr-resolve/SKILL.md") @{
     "deferred ledger report" = 'Deferred Vigil findings recorded in `defered\.md`'
 }
 Assert-NoPatterns (Join-Path $skillRoot "dreamers/SKILL.md") @{
-    "retired pipeline name" = 'dreamers-(?:full|lite)'
+    "retired pipeline name" = 'dreamers-full'
     "Grill opt-out" = '--no-grill|do not grill|skip the interview'
     "inline implementation refs" = '<(?:planning-grill|testing-mandate|comment-rules|logging-discipline|reviewer-findings-format|agent-recovery)>'
 }
 Assert-Patterns (Join-Path $skillRoot "dreamers-implement/SKILL.md") @{
-    "tests-first implementation" = '(?s)failing tests.*implement|tests.first'
-    "green exit" = '(?s)Return the AC coverage matrix at green tests.*invokes `dreamers-review` immediately'
-    "phase boundary" = '(?s)Do not invoke reviewers.*user testing.*commit.*push.*PR creation'
-    "conditional plan ownership" = '(?s)When standalone.*update_plan.*When invoked by an outer delivery skill.*existing plan'
+    "task or plan implementation" = '(?ms)Implement the task or approved plan.*stated requirements as acceptance criteria; no plan file is needed'
+    "bounded validation" = '(?ms)Type-check \+ run tests.*max 3 attempts.*halt'
+    "green coverage handoff" = '(?ms)Return requirement/AC coverage and validation results at green tests'
+    "optional standalone progress" = '(?ms)When standalone, a todo is optional.*outer delivery skill.*existing todo'
 }
 Assert-Patterns (Join-Path $skillRoot "dreamers-review/SKILL.md") @{
     "Vigil mode" = '(?s)--vigil.*Vigil|Vigil.*--vigil'
@@ -332,18 +335,15 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-review/SKILL.md") @{
     "artifact-only reviewer writes" = '(?s)sole write is exactly one.*artifact'
 }
 Assert-Patterns (Join-Path $dreamersRoot "refs/planning-grill.md") @{
-    "verbatim transcript" = "every planner.*question and every user response.*exactly as sent or.*received.*Do not summarize"
-    "structured question detail" = "request_user_input.*complete presented question.*choice labels.*choice descriptions"
-    "transcript path" = "\.dreamers/plans/feature-<slug>/grilling-transcript\.md"
+    "explore before asking" = '(?ms)Explore the codebase for answers before asking the user'
+    "single blocking question" = '(?ms)one blocking question at a time'
+    "verbatim transcript" = '(?ms)every question and response verbatim.*complete tool questions, choice labels, and descriptions.*never summarize, paraphrase, normalize, or omit'
+    "transcript storage" = '(?ms)\.dreamers/plans/feature-<slug>/grilling-transcript\.md.*Do not create an empty transcript'
 }
 Assert-Patterns (Join-Path $skillRoot "dreamers-plan/SKILL.md") @{
-    "verbatim transcript write" = 'write `grilling-transcript\.md`.*Preserve every question and response word for word'
-    "plan transcript link" = 'each plan MUST include `\*\*Grilling transcript:\*\* \[grilling-transcript\.md\]\(\./grilling-transcript\.md\)`'
-}
-foreach ($guideName in @("plan-guide-lite.md", "plan-guide-standard.md", "plan-guide-complex.md")) {
-    Assert-Patterns (Join-Path $dreamersRoot "templates/$guideName") @{
-        "optional Grill transcript metadata" = "\*\*Grilling transcript:\*\*.*grilling-transcript\.md.*when the sibling artifact exists"
-    }
+    "planning write boundary" = '(?ms)write only `\.dreamers/plans/` artifacts; do not change project files or git state'
+    "proposal before writing" = '(?ms)Propose to user.*until approved.*Write plan'
+    "review gate" = '(?ms)Review gate.*Approved.*Minor edit.*Major rewrite.*Halt'
 }
 Assert-Patterns (Join-Path $agentRoot "vigil.toml") @{
     "planless Vigil review basis" = "If no plan is bound.*inferred-intent summary.*evidence"
@@ -360,9 +360,12 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-new-project/SKILL.md") @{
     "research informs downstream artifacts" = '(?s)existing-solutions research.*stack recommendation.*project brief'
 }
 Assert-Patterns (Join-Path $dreamersRoot "instructions/dreamers.instructions.md") @{
-    "same-context skill invocation" = '(?s)skill.*same orchestrator context|same orchestrator context.*skill'
-    "outermost plan ownership" = '(?s)outermost skill.*owns.*(?:todo|plan)|(?:todo|plan).*owned by.*outermost skill'
-    "global deferred suggestions ledger" = '(?s)Deferred suggestions.*explicitly chooses `Defer`.*defered\.md.*# Deferred Suggestions.*never overwrite.*Stage `defered\.md`'
+    "same-context composition" = '(?ms)skill.*same orchestrator context'
+    "outermost progress ownership" = '(?ms)outermost skill.*owns.*todo'
+    "durable delivery state" = '(?ms)Delivery continuation.*goal, owning skill, branch/PR, next phase, and review count.*confirmed outcomes'
+    "follow-ups preserve caps" = '(?ms)resume the pending phase.*detours do not reset an active review count'
+    "open PR corrections" = '(?ms)open PR, reuse its branch.*dreamers-review --vigil.*staged \+ unstaged.*dreamers-docs --staged.*approval for the current changes before committing and pushing.*Reuse approval already given'
+    "global deferred ledger" = '(?ms)explicitly chooses `Defer`.*defered\.md.*never overwrite existing entries'
 }
 Assert-Patterns (Join-Path $dreamersRoot "refs/codex-runtime.md") @{
     "same-context composition" = 'invoke it in the same orchestrator context'
@@ -372,9 +375,8 @@ Assert-NoPatterns (Join-Path $skillRoot "dreamers-update/SKILL.md") @{
     "implementation mirror rule" = 'dreamers-implement mirror'
 }
 Assert-Patterns (Join-Path $skillRoot "dreamers-explain/SKILL.md") @{
-    "Codex runtime preamble" = '(?s)## Codex runtime.*codex-runtime\.md.*Skill input: use the user''s message'
+    "Codex runtime preamble" = '(?s)## Codex runtime.*codex-runtime\.md.*user''s message as skill input'
     "read-only boundary" = '(?s)Default to read-only work.*do not modify the subject'
-    "focused research boundary" = '(?s)Use `dreamers-research` instead.*durable, multi-perspective research report'
     "conditional source retrieval" = '(?s)Search or retrieve external sources when:.*facts may have changed.*niche, disputed, uncertain, or high-stakes'
     "source priority" = '(?s)Source priority:.*repository evidence.*First-party documentation.*High-quality secondary sources'
     "layered explanation" = '(?s)Direct answer.*Orientation.*Mental model.*Mechanics.*Concrete example.*Edges and alternatives.*Takeaway'
@@ -382,6 +384,22 @@ Assert-Patterns (Join-Path $skillRoot "dreamers-explain/SKILL.md") @{
 }
 Assert-Patterns (Join-Path $Root ".codex-plugin/plugin.json") @{
     "unified default prompt" = 'Use dreamers to plan and ship'
+}
+
+Assert-Patterns (Join-Path $skillRoot "dreamers-lite/SKILL.md") @{
+    "direct task implementation" = '(?ms)dreamers-implement <task description and agreed scope>'
+    "capped Vigil fixes" = '(?ms)dreamers-review --vigil --branch.*up to 2 times.*Ask before major refactors.*defered\.md'
+    "blocked or unresolved review stops" = '(?ms)Halt on a blocked review or unresolved findings at the cap'
+    "uncommitted docs before commit" = '(?ms)Phase 3.*dreamers-docs --staged.*commit remaining changes.*Approved.*dreamers-pr'
+    "continuation routing" = '(?ms)Delivery continuation.*resume the pending phase'
+}
+
+Assert-Patterns (Join-Path $dreamersRoot "refs/plan-format.md") @{
+    "unified plan body" = '(?ms)## Goal.*## Scope and context.*## Acceptance Criteria'
+    "complexity metadata" = '(?ms)Plan-type:.*lite\|standard\|complex'
+    "optional transcript link" = '(?ms)Grilling transcript:.*grilling-transcript\.md.*Include the transcript link only when the sibling artifact exists'
+    "checks with ACs" = '(?ms)Under the relevant AC, add a test command or check.*manual checks.*steps, expected result.*User-testing-required: yes'
+    "useful visuals" = '(?ms)Mermaid diagrams.*UI layouts/wireframes'
 }
 
 $scanRoots = @("agents", "skills", "dreamers", "README.md", "Install-DreamersCodex.ps1", "Remove-DreamersCodex.ps1", ".github/catalog.json") |
@@ -410,7 +428,8 @@ $stalePatterns = @(
     "dreamers/agents/hone",
     "manage_todo_list",
     "request_information",
-    "task\("
+    "task\(",
+    'mode:\s*["'']?sync'
 )
 
 foreach ($file in $scanFiles) {
@@ -425,7 +444,7 @@ foreach ($file in $scanFiles) {
     }
 }
 
-$legacyPattern = "dreamers-full"
+$legacyPattern = "dreamers-full|dreamers-research|\b(?:forge|nova|sage)\b|plan-quality|plan-selection|plan-guide-(?:selector|lite|standard|complex)|hone-architecture-rubric"
 $migrationPattern = "retir|remov|legacy|migrat|cleanup|clean up|previous|old command|no longer"
 $legacyScanRoots = @("agents", "skills", "dreamers", "README.md", ".github/catalog.json", ".codex-plugin/plugin.json") |
     ForEach-Object { Join-Path $Root $_ } |
@@ -448,99 +467,110 @@ foreach ($scanRoot in $legacyScanRoots) {
 }
 
 if (-not $SkipInstallSmoke) {
+    $retiredFiles = @(
+        "agents/bolt.toml",
+        "agents/forge.toml",
+        "agents/nova.toml",
+        "agents/sage.toml",
+        "dreamers/agents/echo.md",
+        "dreamers/agents/forge.md",
+        "dreamers/agents/hone.md",
+        "dreamers/agents/nova.md",
+        "dreamers/agents/probe.md",
+        "dreamers/agents/sage.md",
+        "dreamers/agents/sentinel.md",
+        "skills/dreamers-full/SKILL.md",
+        "skills/dreamers-full/readme.md",
+        "skills/dreamers-research/SKILL.md",
+        "skills/dreamers-research/readme.md",
+        "dreamers/refs/hone-architecture-rubric.md",
+        "dreamers/refs/plan-quality.md",
+        "dreamers/refs/plan-selection.md",
+        "dreamers/templates/plan-guide-selector.md",
+        "dreamers/templates/plan-guide-lite.md",
+        "dreamers/templates/plan-guide-standard.md",
+        "dreamers/templates/plan-guide-complex.md",
+        "dreamers/templates/plan-writing-guide.md",
+        "dreamers/instructions/comment-rules.instructions.md",
+        "dreamers/instructions/git.instructions.md"
+    )
+    $userFiles = @(
+        "agents/user-owned.toml",
+        "dreamers/agents/user-owned.md",
+        "dreamers/refs/user-owned.md",
+        "dreamers/templates/user-owned.md",
+        "dreamers/instructions/user-owned.md",
+        "skills/dreamers-lite/user-owned.md",
+        "skills/dreamers-research/.user-owned.md"
+    )
+    $managedFiles = @("agents", "skills", "dreamers") | ForEach-Object {
+        Get-ChildItem (Join-Path $Root $_) -File -Recurse | ForEach-Object { Get-RelativePath $_.FullName }
+    }
     $tmpBase = Join-Path $Root ".tmp"
     New-Item -ItemType Directory -Path $tmpBase -Force | Out-Null
-    $tmpHome = Join-Path $tmpBase ("dreamers-codex-test-" + [System.Guid]::NewGuid().ToString("N"))
-    New-Item -ItemType Directory -Path $tmpHome -Force | Out-Null
-    try {
-        $userRef = Join-Path $tmpHome "dreamers\refs\user-owned.md"
-        $userSkill = Join-Path $tmpHome "skills\dreamers-plan\user-owned.md"
-        $userInstruction = Join-Path $tmpHome "dreamers\instructions\user-owned.md"
-        $legacyAgent = Join-Path $tmpHome "dreamers\agents\echo.md"
-        $legacyUser = Join-Path $tmpHome "dreamers\agents\user-owned.md"
-        $legacyBolt = Join-Path $tmpHome "agents\bolt.toml"
-        $staleCommentRules = Join-Path $tmpHome "dreamers\instructions\comment-rules.instructions.md"
-        $staleGitInstructions = Join-Path $tmpHome "dreamers\instructions\git.instructions.md"
-        $stalePlanGuide = Join-Path $tmpHome "dreamers\templates\plan-writing-guide.md"
-        foreach ($path in @($userRef, $userSkill, $userInstruction, $legacyAgent, $legacyUser, $legacyBolt, $staleCommentRules, $staleGitInstructions, $stalePlanGuide)) {
-            New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
-            Set-Content -Path $path -Value "user-owned" -Encoding utf8NoBOM
-        }
-        $activeLite = Join-Path $tmpHome "skills\dreamers-lite"
-        $legacyFull = Join-Path $tmpHome "skills\dreamers-full"
-        foreach ($directory in @($activeLite, $legacyFull)) {
-            New-Item -ItemType Directory -Path $directory -Force | Out-Null
-            Set-Content -Path (Join-Path $directory "SKILL.md") -Value "managed" -Encoding utf8NoBOM
-            Set-Content -Path (Join-Path $directory "readme.md") -Value "managed" -Encoding utf8NoBOM
-        }
-        Set-Content -Path (Join-Path $activeLite "user-owned.md") -Value "preserve" -Encoding utf8NoBOM
+    foreach ($forceInstall in @($false, $true)) {
+        $tmpHome = Join-Path $tmpBase ("dreamers-codex-test-" + [System.Guid]::NewGuid().ToString("N"))
+        New-Item -ItemType Directory -Path $tmpHome -Force | Out-Null
+        try {
+            foreach ($rel in ($retiredFiles + $userFiles)) {
+                $path = Join-Path $tmpHome $rel
+                New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
+                Set-Content -Path $path -Value "preserve fixture" -NoNewline -Encoding utf8NoBOM
+            }
+            $existingSkill = "skills/dreamers-lite/SKILL.md"
+            Set-Content -Path (Join-Path $tmpHome $existingSkill) -Value "existing active skill" -NoNewline -Encoding utf8NoBOM
+            & (Join-Path $Root "Install-DreamersCodex.ps1") -CodexHome $tmpHome -Force:$forceInstall | Out-Null
 
-        & (Join-Path $Root "Install-DreamersCodex.ps1") -CodexHome $tmpHome -Force | Out-Null
+            foreach ($rel in $retiredFiles) {
+                if (Test-Path (Join-Path $tmpHome $rel)) { Add-Error "Install (force=$forceInstall) retained retired managed file: $rel" }
+            }
+            foreach ($rel in $userFiles) {
+                $path = Join-Path $tmpHome $rel
+                if (-not (Test-Path $path) -or (Get-Content -Raw $path) -cne "preserve fixture") {
+                    Add-Error "Install (force=$forceInstall) changed user-owned file: $rel"
+                }
+            }
+            foreach ($rel in $managedFiles) {
+                $installed = Join-Path $tmpHome $rel
+                $expected = Get-Content -Raw (Join-Path $Root $rel)
+                if ($rel -eq $existingSkill -and -not $forceInstall) { $expected = "existing active skill" }
+                if (-not (Test-Path $installed) -or (Get-Content -Raw $installed) -cne $expected) {
+                    Add-Error "Install (force=$forceInstall) has incorrect managed file: $rel"
+                }
+            }
+            if (Test-Path (Join-Path $tmpHome "skills/dreamers-full")) { Add-Error "Install did not prune empty retired skill directory" }
 
-        foreach ($path in @($userRef, $userSkill, $userInstruction, $legacyUser)) {
-            if (-not (Test-Path $path)) { Add-Error "Install smoke removed user-owned file: $path" }
-        }
-        if (Test-Path $legacyAgent) { Add-Error "Install smoke did not remove legacy agent file: $legacyAgent" }
-        if (Test-Path $legacyBolt) { Add-Error "Install smoke did not remove legacy bolt agent: $legacyBolt" }
-        if (Test-Path $staleCommentRules) { Add-Error "Install smoke did not remove obsolete managed file: $staleCommentRules" }
-        if (Test-Path $staleGitInstructions) { Add-Error "Install smoke did not remove obsolete managed file: $staleGitInstructions" }
-        if (Test-Path $stalePlanGuide) { Add-Error "Install smoke did not remove obsolete managed file: $stalePlanGuide" }
-        if (Test-Path (Join-Path $tmpHome "dreamers\refs\refs")) { Add-Error "Install smoke created nested refs directory" }
-        if (Test-Path (Join-Path $tmpHome "skills\dreamers-pr-resolve\dreamers-pr-resolve")) { Add-Error "Install smoke created nested skill directory" }
-        if (-not (Test-Path (Join-Path $tmpHome "agents\sentinel.toml"))) { Add-Error "Install smoke did not install agent TOMLs" }
-        if (Test-Path (Join-Path $tmpHome "agents\bolt.toml")) { Add-Error "Install smoke installed non-authoritative bolt agent" }
-        if (-not (Test-Path (Join-Path $tmpHome "skills\dreamers\SKILL.md"))) { Add-Error "Install smoke did not install exact dreamers skill" }
-        if (-not (Test-Path (Join-Path $tmpHome "skills\dreamers-help\SKILL.md"))) { Add-Error "Install smoke did not install dreamers-help skill" }
-        foreach ($managed in @("SKILL.md", "readme.md")) {
-            $path = Join-Path $activeLite $managed
-            if (-not (Test-Path $path)) { Add-Error "Install smoke did not install active dreamers-lite file: $path" }
-        }
-        if ((Get-Content -Raw (Join-Path $activeLite "SKILL.md")) -notmatch "name: dreamers-lite") {
-            Add-Error "Install smoke did not replace the active dreamers-lite skill"
-        }
-        foreach ($path in @(
-            (Join-Path $tmpHome "dreamers\instructions\dreamers.comment-rules.instructions.md"),
-            (Join-Path $tmpHome "dreamers\instructions\dreamers.laws.md")
-        )) {
-            if (-not (Test-Path $path)) { Add-Error "Install smoke missing managed instruction: $path" }
-        }
-        foreach ($managed in @("SKILL.md", "readme.md")) {
-            $path = Join-Path $legacyFull $managed
-            if (Test-Path $path) { Add-Error "Install smoke retained legacy managed file: $path" }
-        }
-        if (-not (Test-Path (Join-Path $activeLite "user-owned.md"))) { Add-Error "Install smoke removed user-owned active file: $activeLite" }
-        if (Test-Path $legacyFull) { Add-Error "Install smoke did not prune empty legacy directory: $legacyFull" }
+            foreach ($rel in $retiredFiles) {
+                $path = Join-Path $tmpHome $rel
+                New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
+                Set-Content -Path $path -Value "retired fixture" -NoNewline -Encoding utf8NoBOM
+            }
+            $beforeDryRun = @{}
+            Get-ChildItem $tmpHome -File -Recurse -Force | ForEach-Object {
+                $beforeDryRun[$_.FullName] = (Get-FileHash -LiteralPath $_.FullName).Hash
+            }
+            & (Join-Path $Root "Remove-DreamersCodex.ps1") -CodexHome $tmpHome -DryRun | Out-Null
+            foreach ($path in $beforeDryRun.Keys) {
+                if (-not (Test-Path $path) -or (Get-FileHash -LiteralPath $path).Hash -ne $beforeDryRun[$path]) {
+                    Add-Error "Removal dry run changed file: $path"
+                }
+            }
 
-        New-Item -ItemType Directory -Path $legacyFull -Force | Out-Null
-        Set-Content -Path (Join-Path $legacyFull "SKILL.md") -Value "managed" -Encoding utf8NoBOM
-        Set-Content -Path (Join-Path $legacyFull "readme.md") -Value "managed" -Encoding utf8NoBOM
-        Set-Content -Path $staleCommentRules -Value "obsolete managed file" -Encoding utf8NoBOM
-        Set-Content -Path $staleGitInstructions -Value "obsolete managed file" -Encoding utf8NoBOM
-        Set-Content -Path $stalePlanGuide -Value "obsolete managed file" -Encoding utf8NoBOM
-
-        & (Join-Path $Root "Remove-DreamersCodex.ps1") -CodexHome $tmpHome | Out-Null
-
-        foreach ($path in @($userRef, $userSkill, $userInstruction, $legacyUser)) {
-            if (-not (Test-Path $path)) { Add-Error "Remove smoke removed user-owned file: $path" }
+            & (Join-Path $Root "Remove-DreamersCodex.ps1") -CodexHome $tmpHome | Out-Null
+            foreach ($rel in ($managedFiles + $retiredFiles)) {
+                if (Test-Path (Join-Path $tmpHome $rel)) { Add-Error "Removal retained managed file: $rel" }
+            }
+            foreach ($rel in $userFiles) {
+                $path = Join-Path $tmpHome $rel
+                if (-not (Test-Path $path) -or (Get-Content -Raw $path) -cne "preserve fixture") {
+                    Add-Error "Removal changed user-owned file: $rel"
+                }
+            }
+            if (Test-Path (Join-Path $tmpHome "skills/dreamers-full")) { Add-Error "Removal did not prune empty retired skill directory" }
         }
-        if (Test-Path (Join-Path $tmpHome "agents\sentinel.toml")) { Add-Error "Remove smoke left managed agent file behind" }
-        if (Test-Path (Join-Path $tmpHome "skills\dreamers-plan\SKILL.md")) { Add-Error "Remove smoke left managed skill file behind" }
-        if (Test-Path (Join-Path $tmpHome "skills\dreamers\SKILL.md")) { Add-Error "Remove smoke left exact dreamers skill behind" }
-        if (Test-Path (Join-Path $tmpHome "skills\dreamers-help\SKILL.md")) { Add-Error "Remove smoke left dreamers-help skill behind" }
-        foreach ($path in @(
-            (Join-Path $tmpHome "dreamers\instructions\dreamers.comment-rules.instructions.md"),
-            (Join-Path $tmpHome "dreamers\instructions\dreamers.laws.md")
-        )) {
-            if (Test-Path $path) { Add-Error "Remove smoke left managed instruction behind: $path" }
+        finally {
+            if (Test-Path $tmpHome) { Remove-Item -LiteralPath $tmpHome -Recurse -Force }
         }
-        if (Test-Path $staleCommentRules) { Add-Error "Remove smoke left obsolete managed file behind: $staleCommentRules" }
-        if (Test-Path $staleGitInstructions) { Add-Error "Remove smoke left obsolete managed file behind: $staleGitInstructions" }
-        if (Test-Path $stalePlanGuide) { Add-Error "Remove smoke left obsolete managed file behind: $stalePlanGuide" }
-        if (-not (Test-Path (Join-Path $activeLite "user-owned.md"))) { Add-Error "Remove smoke removed user-owned active file: $activeLite" }
-        if (Test-Path $legacyFull) { Add-Error "Remove smoke did not prune empty legacy directory: $legacyFull" }
-    }
-    finally {
-        if (Test-Path $tmpHome) { Remove-Item -LiteralPath $tmpHome -Recurse -Force }
     }
 }
 

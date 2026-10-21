@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-"$script_dir/sync-refs.sh" -Verify
+"$root/scripts/sync-refs.sh" -Verify
 
 python3 - "$root" <<'PY'
 from pathlib import Path
@@ -82,7 +82,13 @@ def assert_no_patterns(path: Path, patterns: dict[str, str]) -> None:
             add_error(f"Unexpected {label} contract in {path}")
 
 
-expected_agents = ["echo", "forge", "hone", "nova", "probe", "sage", "sentinel", "vigil"]
+expected_agents = [
+    "echo",
+    "hone",
+    "probe",
+    "sentinel",
+    "vigil"
+]
 expected_skills = [
     "dreamers",
     "dreamers-add-logging",
@@ -91,21 +97,20 @@ expected_skills = [
     "dreamers-cleanup-comments-branch",
     "dreamers-docs",
     "dreamers-explain",
-    "dreamers-help",
-    "dreamers-lite",
     "dreamers-find-refactors",
+    "dreamers-help",
     "dreamers-implement",
     "dreamers-issue",
+    "dreamers-lite",
     "dreamers-new-project",
     "dreamers-plan",
     "dreamers-plan-verify",
     "dreamers-pr",
     "dreamers-pr-resolve",
-    "dreamers-research",
     "dreamers-review",
     "dreamers-simplify",
     "dreamers-test",
-    "dreamers-update",
+    "dreamers-update"
 ]
 expected_refs = [
     "agent-recovery.md",
@@ -113,28 +118,27 @@ expected_refs = [
     "comment-rules.md",
     "dreamers-kernel.md",
     "git-workflow.md",
-    "hone-architecture-rubric.md",
     "logging-discipline.md",
+    "manifest-format.md",
+    "plan-format.md",
     "planning-grill.md",
     "project-bootstrap.md",
     "reviewer-findings-format.md",
+    "shell-plan.md",
     "testing-mandate.md",
+    "user-testing-gate.md"
 ]
 expected_templates = [
     "discovery-questions.md",
     "github-issue.md",
     "logging-standards.md",
     "manifest.md",
-    "plan-guide-complex.md",
-    "plan-guide-lite.md",
-    "plan-guide-selector.md",
-    "plan-guide-standard.md",
     "plan.md",
     "pr-description.md",
     "project-brief.md",
     "shell-plan.md",
     "test-benchmarks.md",
-    "user-testing-gate.md",
+    "user-testing-gate.md"
 ]
 expected_instructions = [
     "dreamers.comment-rules.instructions.md",
@@ -147,14 +151,13 @@ expected_skill_readmes = [
     "dreamers-cleanup-comments",
     "dreamers-cleanup-comments-branch",
     "dreamers-explain",
-    "dreamers-lite",
     "dreamers-find-refactors",
     "dreamers-implement",
+    "dreamers-lite",
     "dreamers-new-project",
     "dreamers-plan",
     "dreamers-pr-resolve",
-    "dreamers-research",
-    "dreamers-review",
+    "dreamers-review"
 ]
 
 agent_root = root / "agents"
@@ -237,7 +240,7 @@ if catalog_path.exists():
         for required in ["skill:dreamers", "skill:dreamers-help"]:
             if required not in items:
                 add_error(f"Catalog missing item: {required}")
-        for retired in ["skill:dreamers-full"]:
+        for retired in ["skill:dreamers-full", "skill:dreamers-research", "agent:forge", "agent:nova", "agent:sage"]:
             if retired in items:
                 add_error(f"Catalog retains retired item: {retired}")
         for item in catalog.get("items", []):
@@ -260,7 +263,7 @@ if catalog_path.exists():
             for required in ["skill:dreamers", "skill:dreamers-help"]:
                 if required not in members:
                     add_error(f"Collection missing member: {required}")
-            for retired in ["skill:dreamers-full"]:
+            for retired in ["skill:dreamers-full", "skill:dreamers-research", "agent:forge", "agent:nova", "agent:sage"]:
                 if retired in members:
                     add_error(f"Collection retains retired member: {retired}")
         for folder in catalog.get("folderTargets", []):
@@ -278,23 +281,21 @@ if catalog_path.exists():
 assert_patterns(
     skill_root / "dreamers/SKILL.md",
     {
-        "help route": r"## Route input.*Empty or whitespace-only input.*`help`.*`--help`.*`-h`.*invoke `dreamers-help`.*read-only",
-        "unrecognized-input halt": r"Otherwise halt and ask for a task, plan path, manifest, or help",
-        "three input modes": r"## Modes.*Task description.*Plan path\(s\).*manifest\.md",
-        "planning delegation": r"## Phase 1.*Invoke `dreamers-plan`",
-        "implementation then review": r"### Steps 1.3.*Invoke `dreamers-implement.*### Step 4.*Invoke `dreamers-review",
-        "complexity-selected review": r"selects Vigil, Sentinel \+ Probe, or Sentinel \+ Probe \+ Hone from plan complexity or explicit plan/user direction",
-        "major-refactor gate": r"Major-refactor gate.*Apply now.*Defer — save to defered\.md.*Other",
-        "deferred findings ledger": r"Defer.*do NOT apply or create a follow-up plan.*defered\.md.*# Deferred Suggestions.*never overwrite.*Stage `defered\.md`",
-        "major-change rerun gate": r"Run Vigil.*Run full triad.*Run selected dreamers-review lane.*Skip reviewer rerun.*Other",
-        "templated user testing": r"user-testing-gate\.md.*Testing steps.*Notes.*Approved.*Bug found \(enter text\).*Other \(enter text\)",
-        "full close-out": r"Phase 3.*improvements\.md.*dreamers-docs --branch.*Write retro.*Final commit.*User approval gate.*dreamers-pr",
+        "help route before inspection": r"Empty input.*`help`.*`--help`.*`-h`.*dreamers-help.*stop before inspecting",
+        "artifact authorization": r"Supplied artifacts are implementation authorization.*do not re-plan.*ask to start",
+        "task planning and start gate": r"Phase 1:.*Invoke `dreamers-plan.*Approved — start implementation.*start INCREMENTAL.*start ATOMIC",
+        "implementation then selected review": r"### Implement and review.*dreamers-implement.*dreamers-review --branch",
+        "capped Vigil fixes": r"dreamers-review --vigil --branch.*up to 3 times.*Ask before major refactors.*defered\.md",
+        "blocked or unresolved review stops": r"Halt.*blocked review or unresolved findings at the cap",
+        "triggered user testing": r"### User testing.*manual verification.*user-testing-gate.*staged \+ unstaged.*review cap",
+        "ship strategies": r"ATOMIC.*commit.*do not push.*INCREMENTAL.*dreamers-docs --branch.*confirm merge",
+        "close-out order": r"Phase 3.*dreamers-docs --branch.*commit remaining changes.*Approved.*dreamers-pr",
     },
 )
 assert_patterns(
     skill_root / "dreamers-help/SKILL.md",
     {
-        "Codex runtime preamble": r"## Codex runtime.*codex-runtime\.md.*Skill input: use the user's message",
+        "Codex runtime preamble": r"## Codex runtime.*codex-runtime\.md.*user's message as skill input",
         "read-only boundary": r"## Boundary.*read-only guidance.*Do not inspect or change",
         "primary examples": r"dreamers add offline export.*dreamers feature-search/plan-01-indexing\.md.*dreamers feature-search/manifest\.md",
         "review lanes": r"lite plans use Vigil.*standard plans use Sentinel \+ Probe.*complex plans use Sentinel \+ Probe \+ Hone",
@@ -314,7 +315,7 @@ assert_patterns(
 assert_no_patterns(
     skill_root / "dreamers/SKILL.md",
     {
-        "retired pipeline name": r"dreamers-(?:full|lite)",
+        "retired pipeline name": r"dreamers-full",
         "Grill opt-out": r"--no-grill|do not grill|skip the interview",
         "inline implementation refs": r"<(?:planning-grill|testing-mandate|comment-rules|logging-discipline|reviewer-findings-format|agent-recovery)>",
     },
@@ -322,10 +323,10 @@ assert_no_patterns(
 assert_patterns(
     skill_root / "dreamers-implement/SKILL.md",
     {
-        "tests-first implementation": r"failing tests.*implement|tests.first",
-        "green exit": r"Return the AC coverage matrix at green tests.*invokes `dreamers-review` immediately",
-        "phase boundary": r"Do not invoke reviewers.*user testing.*commit.*push.*PR creation",
-        "conditional plan ownership": r"When standalone.*update_plan.*When invoked by an outer delivery skill.*existing plan",
+        "task or plan implementation": r"Implement the task or approved plan.*stated requirements as acceptance criteria; no plan file is needed",
+        "bounded validation": r"Type-check \+ run tests.*max 3 attempts.*halt",
+        "green coverage handoff": r"Return requirement/AC coverage and validation results at green tests",
+        "optional standalone progress": r"When standalone, a todo is optional.*outer delivery skill.*existing todo",
     },
 )
 assert_patterns(
@@ -350,23 +351,20 @@ assert_patterns(
 assert_patterns(
     dreamers_root / "refs/planning-grill.md",
     {
-        "verbatim transcript": r"every planner.*question and every user response.*exactly as sent or.*received.*Do not summarize",
-        "structured question detail": r"request_user_input.*complete presented question.*choice labels.*choice descriptions",
-        "transcript path": r"\.dreamers/plans/feature-<slug>/grilling-transcript\.md",
+        "explore before asking": r"Explore the codebase for answers before asking the user",
+        "single blocking question": r"one blocking question at a time",
+        "verbatim transcript": r"every question and response verbatim.*complete tool questions, choice labels, and descriptions.*never summarize, paraphrase, normalize, or omit",
+        "transcript storage": r"\.dreamers/plans/feature-<slug>/grilling-transcript\.md.*Do not create an empty transcript",
     },
 )
 assert_patterns(
     skill_root / "dreamers-plan/SKILL.md",
     {
-        "verbatim transcript write": r"write `grilling-transcript\.md`.*Preserve every question and response word for word",
-        "plan transcript link": r"each plan MUST include `\*\*Grilling transcript:\*\* \[grilling-transcript\.md\]\(\./grilling-transcript\.md\)`",
+        "planning write boundary": r"write only `\.dreamers/plans/` artifacts; do not change project files or git state",
+        "proposal before writing": r"Propose to user.*until approved.*Write plan",
+        "review gate": r"Review gate.*Approved.*Minor edit.*Major rewrite.*Halt",
     },
 )
-for guide_name in ["plan-guide-lite.md", "plan-guide-standard.md", "plan-guide-complex.md"]:
-    assert_patterns(
-        dreamers_root / "templates" / guide_name,
-        {"optional Grill transcript metadata": r"\*\*Grilling transcript:\*\*.*grilling-transcript\.md.*when the sibling artifact exists"},
-    )
 assert_patterns(
     agent_root / "vigil.toml",
     {
@@ -393,9 +391,12 @@ assert_patterns(
 assert_patterns(
     dreamers_root / "instructions/dreamers.instructions.md",
     {
-        "same-context skill invocation": r"skill.*same orchestrator context|same orchestrator context.*skill",
-        "outermost plan ownership": r"outermost skill.*owns.*(?:todo|plan)|(?:todo|plan).*owned by.*outermost skill",
-        "global deferred suggestions ledger": r"Deferred suggestions.*explicitly chooses `Defer`.*defered\.md.*# Deferred Suggestions.*never overwrite.*Stage `defered\.md`",
+        "same-context composition": r"skill.*same orchestrator context",
+        "outermost progress ownership": r"outermost skill.*owns.*todo",
+        "durable delivery state": r"Delivery continuation.*goal, owning skill, branch/PR, next phase, and review count.*confirmed outcomes",
+        "follow-ups preserve caps": r"resume the pending phase.*detours do not reset an active review count",
+        "open PR corrections": r"open PR, reuse its branch.*dreamers-review --vigil.*staged \+ unstaged.*dreamers-docs --staged.*approval for the current changes before committing and pushing.*Reuse approval already given",
+        "global deferred ledger": r"explicitly chooses `Defer`.*defered\.md.*never overwrite existing entries",
     },
 )
 assert_patterns(
@@ -412,9 +413,8 @@ assert_no_patterns(
 assert_patterns(
     skill_root / "dreamers-explain/SKILL.md",
     {
-        "Codex runtime preamble": r"## Codex runtime.*codex-runtime\.md.*Skill input: use the user's message",
+        "Codex runtime preamble": r"## Codex runtime.*codex-runtime\.md.*user's message as skill input",
         "read-only boundary": r"Default to read-only work.*do not modify the subject",
-        "focused research boundary": r"Use `dreamers-research` instead.*durable, multi-perspective research report",
         "conditional source retrieval": r"Search or retrieve external sources when:.*facts may have changed.*niche, disputed, uncertain, or high-stakes",
         "source priority": r"Source priority:.*repository evidence.*First-party documentation.*High-quality secondary sources",
         "layered explanation": r"Direct answer.*Orientation.*Mental model.*Mechanics.*Concrete example.*Edges and alternatives.*Takeaway",
@@ -424,6 +424,28 @@ assert_patterns(
 assert_patterns(
     root / ".codex-plugin/plugin.json",
     {"unified default prompt": r"Use dreamers to plan and ship"},
+)
+
+assert_patterns(
+    skill_root / "dreamers-lite/SKILL.md",
+    {
+        "direct task implementation": r"dreamers-implement <task description and agreed scope>",
+        "capped Vigil fixes": r"dreamers-review --vigil --branch.*up to 2 times.*Ask before major refactors.*defered\.md",
+        "blocked or unresolved review stops": r"Halt on a blocked review or unresolved findings at the cap",
+        "uncommitted docs before commit": r"Phase 3.*dreamers-docs --staged.*commit remaining changes.*Approved.*dreamers-pr",
+        "continuation routing": r"Delivery continuation.*resume the pending phase",
+    },
+)
+
+assert_patterns(
+    dreamers_root / "refs/plan-format.md",
+    {
+        "unified plan body": r"## Goal.*## Scope and context.*## Acceptance Criteria",
+        "complexity metadata": r"Plan-type:.*lite\|standard\|complex",
+        "optional transcript link": r"Grilling transcript:.*grilling-transcript\.md.*Include the transcript link only when the sibling artifact exists",
+        "checks with ACs": r"Under the relevant AC, add a test command or check.*manual checks.*steps, expected result.*User-testing-required: yes",
+        "useful visuals": r"Mermaid diagrams.*UI layouts/wireframes",
+    },
 )
 
 scan_roots = [
@@ -464,6 +486,7 @@ stale_patterns = [
     r"manage_todo_list",
     r"request_information",
     r"task\(",
+    r"mode:\s*[\"']?sync",
 ]
 
 for path in scan_files:
@@ -475,7 +498,7 @@ for path in scan_files:
         if re.search(pattern, content):
             add_error(f"Stale Copilot/legacy token '{pattern}' remains in {rel}")
 
-legacy_pattern = re.compile(r"dreamers-full", re.IGNORECASE)
+legacy_pattern = re.compile(r"dreamers-full|dreamers-research|\b(?:forge|nova|sage)\b|plan-quality|plan-selection|plan-guide-(?:selector|lite|standard|complex)|hone-architecture-rubric", re.IGNORECASE)
 migration_pattern = re.compile(
     r"retir|remov|legacy|migrat|cleanup|clean up|previous|old command|no longer",
     re.IGNORECASE,
@@ -497,74 +520,83 @@ for path in [agent_root, skill_root, dreamers_root, root / "README.md", catalog_
             if legacy_pattern.search(line) and not migration_pattern.search(line):
                 add_error(f"Active retired-pipeline reference in {file}:{line_number}")
 
-tmp_base = root / ".tmp"
-tmp_home = tmp_base / "dreamers-codex-test-sh"
-if tmp_home.exists():
-    import shutil
-    shutil.rmtree(tmp_home)
-try:
-    user_instruction = tmp_home / "dreamers/instructions/user-owned.md"
-    user_instruction.parent.mkdir(parents=True, exist_ok=True)
-    user_instruction.write_text("preserve\n", encoding="utf-8")
-    stale_comment_rules = tmp_home / "dreamers/instructions/comment-rules.instructions.md"
-    stale_comment_rules.write_text("obsolete managed file\n", encoding="utf-8")
-    stale_git_instructions = tmp_home / "dreamers/instructions/git.instructions.md"
-    stale_git_instructions.write_text("obsolete managed file\n", encoding="utf-8")
-    stale_plan_guide = tmp_home / "dreamers/templates/plan-writing-guide.md"
-    stale_plan_guide.parent.mkdir(parents=True, exist_ok=True)
-    stale_plan_guide.write_text("obsolete managed file\n", encoding="utf-8")
-    active_lite = tmp_home / "skills/dreamers-lite"
-    legacy_full = tmp_home / "skills/dreamers-full"
-    for directory in [active_lite, legacy_full]:
-        directory.mkdir(parents=True, exist_ok=True)
-        (directory / "SKILL.md").write_text("managed\n", encoding="utf-8")
-        (directory / "readme.md").write_text("managed\n", encoding="utf-8")
-    (active_lite / "user-owned.md").write_text("preserve\n", encoding="utf-8")
+import subprocess
+import tempfile
 
-    import subprocess
-    subprocess.run(
-        [str(root / "Install-DreamersCodex.sh"), "--codex-home", str(tmp_home), "--force"],
-        cwd=root,
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    if stale_plan_guide.exists():
-        add_error(f"Install smoke did not remove obsolete managed file: {stale_plan_guide}")
-    if stale_comment_rules.exists():
-        add_error(f"Install smoke did not remove obsolete managed file: {stale_comment_rules}")
-    if stale_git_instructions.exists():
-        add_error(f"Install smoke did not remove obsolete managed file: {stale_git_instructions}")
-    if not (tmp_home / "skills/dreamers/SKILL.md").exists():
-        add_error("Install smoke did not install exact dreamers skill")
-    if not (tmp_home / "skills/dreamers-help/SKILL.md").exists():
-        add_error("Install smoke did not install dreamers-help skill")
-    for managed in ["SKILL.md", "readme.md"]:
-        if not (active_lite / managed).exists():
-            add_error(f"Install smoke did not install active dreamers-lite file: {active_lite / managed}")
-    if "name: dreamers-lite" not in (active_lite / "SKILL.md").read_text(encoding="utf-8"):
-        add_error("Install smoke did not replace the active dreamers-lite skill")
-    for managed_instruction in [
-        "dreamers.comment-rules.instructions.md",
-        "dreamers.laws.md",
-    ]:
-        path = tmp_home / "dreamers/instructions" / managed_instruction
-        if not path.exists():
-            add_error(f"Install smoke did not install managed instruction: {path}")
-    if not user_instruction.exists():
-        add_error(f"Install smoke removed user-owned instruction: {user_instruction}")
-    for managed in ["SKILL.md", "readme.md"]:
-        path = legacy_full / managed
-        if path.exists():
-            add_error(f"Install smoke retained legacy managed file: {path}")
-    if not (active_lite / "user-owned.md").exists():
-        add_error(f"Install smoke removed user-owned active file: {active_lite}")
-    if legacy_full.exists():
-        add_error(f"Install smoke did not prune empty legacy directory: {legacy_full}")
-finally:
-    if tmp_home.exists():
-        import shutil
-        shutil.rmtree(tmp_home)
+retired_files = [
+    "agents/bolt.toml",
+    "agents/forge.toml",
+    "agents/nova.toml",
+    "agents/sage.toml",
+    "dreamers/agents/echo.md",
+    "dreamers/agents/forge.md",
+    "dreamers/agents/hone.md",
+    "dreamers/agents/nova.md",
+    "dreamers/agents/probe.md",
+    "dreamers/agents/sage.md",
+    "dreamers/agents/sentinel.md",
+    "skills/dreamers-full/SKILL.md",
+    "skills/dreamers-full/readme.md",
+    "skills/dreamers-research/SKILL.md",
+    "skills/dreamers-research/readme.md",
+    "dreamers/refs/hone-architecture-rubric.md",
+    "dreamers/refs/plan-quality.md",
+    "dreamers/refs/plan-selection.md",
+    "dreamers/templates/plan-guide-selector.md",
+    "dreamers/templates/plan-guide-lite.md",
+    "dreamers/templates/plan-guide-standard.md",
+    "dreamers/templates/plan-guide-complex.md",
+    "dreamers/templates/plan-writing-guide.md",
+    "dreamers/instructions/comment-rules.instructions.md",
+    "dreamers/instructions/git.instructions.md"
+]
+user_files = [
+    "agents/user-owned.toml",
+    "dreamers/agents/user-owned.md",
+    "dreamers/refs/user-owned.md",
+    "dreamers/templates/user-owned.md",
+    "dreamers/instructions/user-owned.md",
+    "skills/dreamers-lite/user-owned.md",
+    "skills/dreamers-research/.user-owned.md"
+]
+managed_files = [
+    path.relative_to(root)
+    for directory in [agent_root, skill_root, dreamers_root]
+    for path in directory.rglob("*")
+    if path.is_file()
+]
+tmp_base = root / ".tmp"
+tmp_base.mkdir(exist_ok=True)
+for force in (False, True):
+    with tempfile.TemporaryDirectory(prefix="dreamers-codex-test-", dir=tmp_base) as temporary:
+        tmp_home = Path(temporary)
+        for rel in retired_files + user_files:
+            path = tmp_home / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("preserve fixture\n", encoding="utf-8")
+        existing_skill = tmp_home / "skills/dreamers-lite/SKILL.md"
+        existing_skill.write_text("existing active skill\n", encoding="utf-8")
+        command = [str(root / "Install-DreamersCodex.sh"), "--codex-home", str(tmp_home)]
+        if force:
+            command.append("--force")
+        subprocess.run(command, cwd=root, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        for rel in retired_files:
+            if (tmp_home / rel).exists():
+                add_error(f"Install (force={force}) retained retired managed file: {rel}")
+        for rel in user_files:
+            path = tmp_home / rel
+            if not path.exists() or path.read_text(encoding="utf-8") != "preserve fixture\n":
+                add_error(f"Install (force={force}) changed user-owned file: {rel}")
+        for rel in managed_files:
+            installed = tmp_home / rel
+            expected = (root / rel).read_bytes()
+            if installed == existing_skill and not force:
+                expected = b"existing active skill\n"
+            if not installed.exists() or installed.read_bytes() != expected:
+                add_error(f"Install (force={force}) has incorrect managed file: {rel}")
+        if (tmp_home / "skills/dreamers-full").exists():
+            add_error("Install did not prune empty retired skill directory")
 
 if errors:
     for error in errors:

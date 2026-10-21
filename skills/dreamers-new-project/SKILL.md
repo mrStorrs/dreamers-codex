@@ -4,7 +4,7 @@ description: "Bootstrap a brand new project from scratch: discovery questions, o
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 Bootstrap a brand new project from scratch. Work through the phases in order. Do not skip ahead or write anything permanent until the user explicitly approves the brief.
 
@@ -19,37 +19,17 @@ Follow the Dreamers Kernel and output discipline from `Codex global instructions
 
 ## Bootstrap checklist for new repos
 1. Ensure `.dreamers/` is in the project's `.gitignore`
-2. Create the project-level `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` (see ownership below)
+2. Create project-level `AGENTS.md`, or extend the project's existing instruction file.
 3. Create `.dreamers/plans/` directory
-4. Install optional compatibility instruction files only when the project uses `.github/instructions/`:
-   - Copy `comment-rules.instructions.md` from the Dreamers Codex package's `dreamers/instructions/` directory into `.github/instructions/` at the project root. Codex projects should put binding project rules in `AGENTS.md` or `CODEX.md`; `.github/instructions/` remains a compatibility surface for projects that also use Copilot-style instruction loading.
+4. Copy `dreamers/instructions/dreamers.comment-rules.instructions.md` into the project's `.github/instructions/` and reference it from `AGENTS.md`. Codex must be directed to read compatibility instruction files.
 5. **Optional but recommended. (Ask user if they want this created or not):** create `.github/instructions/build.instructions.md` if the project has a defined build/distribution flow for test builds. The file is the authoritative playbook the orchestrator follows during user-testing pauses. It should specify:
    - Which commands (if any) the orchestrator is authorised to run itself
    - Which steps must be performed by the user (install on device, launch app, version/build number to verify, etc.)
    - Where the build artifact lives (link, path, store listing) and how to fetch it
    - How to recover from a failed build/distribution
    If this file is absent, the orchestrator will pause user-testing rounds and ask the user to build/distribute manually.
-
-## Project Instructions Ownership (Split)
-
-The project-level `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` is the shared briefing all agents read on startup.
-
-**Skill/orchestrator owns (initial creation + ongoing):**
-- **Constraints** — anything agents must never do (e.g., no direct DB writes, no breaking public API)
-- **Distribution** — short pointer to `.github/instructions/build.instructions.md` if it exists (the authoritative playbook), or a brief note that the orchestrator should ask the user to build/distribute when no playbook is present
-- **Links** — plan directory, global workspace, related repos
-
-**Echo owns (updated after each cycle):**
-- **Tech stack** — languages, frameworks, major dependencies
-- **Repo structure** — key directories and what lives where
-- **Conventions** — naming, formatting, branching, commit style, test commands
-- **Key files** — entry points, config files, CI/CD definitions
-
-Do not touch Echo-owned sections during orchestration — those updates come from Echo after each cycle.
 </project-bootstrap>
 
-
-Skill input: use the user's message, including any paths or flags.
 
 ---
 
@@ -133,12 +113,14 @@ If not already a repo:
    - Create `.gitignore` with `.dreamers/` plus standard ignores for the agreed stack
    - Create `.dreamers/plans/` and `.dreamers/atlas/` directories
 
-Then create the project-level `AGENTS.md, CODEX.md, or .github/copilot-instructions.md when present` per `project-bootstrap.md` ownership rules — this requires judgment and is done directly.
+Then create project-level `AGENTS.md`, or extend the project's existing instruction file, per `project-bootstrap.md` ownership rules — this requires judgment and is done directly.
 ---
 
 ## Phase 5 — Shell plans
 
-Read `dreamers/templates/shell-plan.md` and `dreamers/templates/plan-guide-selector.md`. For each milestone in the approved brief, create a shell plan in `.dreamers/plans/feature-<slug>/` using the smallest selected guide that preserves quality.
+For each milestone in the approved brief, create `.dreamers/plans/feature-<slug>/plan-NN-<name>.md` using `shell-plan`. Keep plans to the smallest coherent shippable chunks. For multiple plans, add `manifest.md` using `manifest-format`. Fill the outlines without their outer sync tags.
+
+Set `Plan-type` to `lite` for localized work, `standard` for normal feature work, or `complex` for cross-module or high-risk work; honor an explicit user choice. These drafts must be expanded through `dreamers-plan` before implementation.
 
 After writing all plans, list them in chat with file paths and one-line summaries.
 
@@ -152,3 +134,54 @@ Ask the user with `["Shell plans look good — I'll take it from here", "Revise 
 - `Revise` or `Other` → capture changes, update affected plan files, re-list all plans, re-call the gate. Repeat until the user signs off.
 
 This skill ends when the user is happy with the shell plans. From there the user invokes `dreamers-plan` on a specific milestone (or `dreamers` to plan + implement in one session).
+
+<shell-plan>
+Shell plans are drafts for `dreamers-plan`, not implementation-ready plans. Use this outline for each milestone; leave unresolved decisions visible for planning.
+
+```markdown
+# Plan-NN: <milestone name>
+
+**Status:** Shell
+**Milestone:** <N> of <total>
+**Project:** <project name>
+**Plan-type:** <lite|standard|complex>
+**User-testing-required:** <yes|no> - <reason>
+
+## Goal
+<The milestone's outcome.>
+
+## Scope and context
+<Included/excluded work, dependencies or None, and open questions/risks.>
+
+## Acceptance Criteria
+<Rough measurable outcomes for refinement during planning.>
+```
+</shell-plan>
+
+<manifest-format>
+```markdown
+# Feature: <short name>
+
+**Date:** YYYY-MM-DD
+**Status:** Draft
+
+## Summary
+<The outcome delivered by the complete feature.>
+
+## Plan sequence
+| Order | Plan file | Summary |
+|---|---|---|
+| 1 | [plan-01-<name>.md](plan-01-<name>.md) | <Outcome> |
+
+## Shared context
+<Only constraints, decisions and their rationale, or contracts needed by multiple plans. Include cross-plan rollback conditions and order when needed.>
+
+## Acceptance Criteria
+<acceptance_criteria>
+1. Given <feature-level state>, when <whole-feature trigger>, then <observable outcome>.
+   *Layer: E2E.*
+</acceptance_criteria>
+```
+
+Keep plans in execution order. Manifest ACs cover outcomes requiring the whole sequence; plan ACs cover each plan. Omit shared context or feature-level ACs when none apply; do not duplicate plan content.
+</manifest-format>

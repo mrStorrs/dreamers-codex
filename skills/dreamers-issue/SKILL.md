@@ -4,11 +4,9 @@ description: "Create a structured GitHub issue with acceptance criteria from a t
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 Create a GitHub issue for the following request:
-
-Skill input: use the user's message, including any paths or flags.
 
 ---
 
@@ -31,7 +29,7 @@ If the arguments do NOT start with `#`, enter **direct mode**:
 ---
 
 **Step 1 — Repo detection**
-Run `gh repo view --json nameWithOwner` to confirm the current repo. If not in a git repo or no remote is set, ask the user asking the user which repo to target (`OWNER/REPO` format) before proceeding.
+Run `gh repo view --json nameWithOwner` to confirm the current repo. If not in a git repo or no remote is set, ask the user which repo to target (`OWNER/REPO` format) before proceeding.
 
 **Step 2 — Label check**
 Run `gh label list` to see available labels. Pick the most appropriate existing label(s) — do not invent labels. Common mappings:

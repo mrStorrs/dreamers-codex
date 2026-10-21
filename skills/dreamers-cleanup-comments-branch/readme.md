@@ -20,7 +20,7 @@ flowchart TD
     CountReport --> P2
 
     P2["Phase 2 — Proposal + approval"] --> Propose["Present in chat"]
-    Propose --> ApprovalGate{"ask-the-user gate"}
+    Propose --> ApprovalGate{"Ask the user"}
     ApprovalGate -->|Other| Revise["Revise proposal"]
     Revise --> Propose
     ApprovalGate -->|Halt for now| HaltA(["Audit complete<br/>no changes applied"])
@@ -30,7 +30,7 @@ flowchart TD
     Apply --> TypeCheck["Run project's type-check"]
     TypeCheck --> P4
 
-    P4["Phase 4 — Optional Vigil review"] --> ReviewGate{"ask-the-user gate"}
+    P4["Phase 4 — Optional Vigil review"] --> ReviewGate{"Ask the user"}
     ReviewGate -->|Other| ReviewGate
     ReviewGate -->|No — skip| P5
     ReviewGate -->|Yes — review| SpawnVigil["Spawn Vigil<br/>scope = changed files<br/>writes review artifact"]

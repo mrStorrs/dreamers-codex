@@ -4,11 +4,11 @@ Visual map of the PR-feedback resolution skill. Source of truth is `SKILL.md`.
 
 ```mermaid
 flowchart TD
-    Start(["dreamers-pr-resolve the skill input"]) --> S1
+    Start(["dreamers-pr-resolve &lt;skill input&gt;"]) --> S1
 
     S1["Step 1 — Discover open PRs"] --> PRCheck{"PR target?"}
-    PRCheck -->|the skill input specified| UseSpecified["Use specified PR"]
-    PRCheck -->|"Multiple open<br/>none specified"| PickPR["ask-the-user gate<br/>list open PRs + Other"]
+    PRCheck -->|&lt;skill input&gt; specified| UseSpecified["Use specified PR"]
+    PRCheck -->|"Multiple open<br/>none specified"| PickPR["Ask the user<br/>list open PRs + Other"]
     PRCheck -->|Exactly one open| UseOne["Use it without prompting"]
     PickPR --> UseSpecified
     UseSpecified --> S2
@@ -48,7 +48,7 @@ flowchart TD
     S7["Step 7 — Resolve accepted threads"] --> ResolveGQL["gh api graphql<br/>resolveReviewThread per accepted"]
     ResolveGQL --> S8
 
-    S8["Step 8 — Report"] --> End(["N accepted + rationale<br/>M rejected + rationale<br/>commit hash + push status<br/>Vigil artifact result"])
+    S8["Step 8 — Report"] --> End(["N accepted + rationale<br/>M rejected + rationale<br/>commit hash + push status<br/>reviewer results"])
 
     classDef gate fill:#92400e,stroke:#78350f,stroke-width:2px,color:#fff
     classDef halt fill:#7f1d1d,stroke:#991b1b,stroke-width:2px,color:#fff

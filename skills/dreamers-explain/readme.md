@@ -4,7 +4,7 @@ General-purpose, read-only explanation skill. Source of truth is `SKILL.md`.
 
 ```mermaid
 flowchart TD
-    Start(["dreamers-explain the skill input"]) --> Resolve["Resolve subject, goal,<br/>audience, and depth"]
+    Start(["dreamers-explain &lt;skill input&gt;"]) --> Resolve["Resolve subject, goal,<br/>audience, and depth"]
     Resolve --> Missing{"Subject missing or<br/>materially ambiguous?"}
     Missing -->|Yes| Ask["Ask one concise question"]
     Ask --> Resolve
@@ -27,7 +27,6 @@ flowchart TD
 ## Key invariants
 
 - Read-only unless the user explicitly requests an artifact.
-- Focused explanation stays inline; durable multi-perspective reports belong to `dreamers-research`.
 - Local claims cite repository evidence. Current, uncertain, disputed, or high-stakes claims use authoritative external sources.
 - Explanations lead with the core answer, then add intuition, mechanics, examples, and boundaries as needed.
 - Quizzes and Socratic pacing are opt-in, not forced on ordinary explanation requests.

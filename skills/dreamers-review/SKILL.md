@@ -4,9 +4,7 @@ description: "Review skill — selects reviewers from plan complexity or explici
 ---
 
 ## Codex runtime
-Before executing this skill, apply the Codex runtime mapping from `../dreamers/refs/codex-runtime.md` when this package is used as a plugin, or from `$CODEX_HOME/dreamers/refs/codex-runtime.md` when installed directly. Treat the user's message as the former command arguments. Use normal Codex tools, `update_plan` for parent progress tracking, direct user questions for approval gates, and `multi_agent_v1.spawn_agent` only for Dreamers workflows that explicitly call for delegated reviewer, documentarian, or researcher roles.
-
-Skill input: use the user's message, including any paths or flags.
+Read `../../dreamers/refs/codex-runtime.md` relative to this skill directory for resource resolution, progress tracking, user gates, and delegation. Use the user's message as skill input, including paths and flags.
 
 ## Modes
 - `--full` Full triad: Sentinel + Probe + Hone in parallel.
@@ -18,8 +16,8 @@ Skill input: use the user's message, including any paths or flags.
 
 Scope flags: `--paths <glob>` (specific files), `--branch` (feature-branch diff vs default), default = staged + unstaged.
 
-## Codex todo - Before you begin
-- When standalone, call `update_plan` with a todo list for Steps 1–3. When invoked by an outer delivery skill, complete these steps under its existing plan.
+## Todo - Before you begin.
+- When standalone, a todo is optional. When invoked by an outer delivery skill, complete these steps under its existing todo.
 
 ## Step 1 — Establish the review basis
 - If a readable plan is supplied, use it as the review basis. A user-supplied path that cannot be read remains a blocking error; do not silently replace it with an inferred basis.
@@ -35,7 +33,7 @@ Scope flags: `--paths <glob>` (specific files), `--branch` (feature-branch diff 
   3. Otherwise read `**Plan-type:**`: `lite` = Vigil; `standard` = Sentinel + Probe; `complex` = Sentinel + Probe + Hone.
   4. If no plan or Plan-type is available, use Sentinel + Probe + Hone.
 - Before spawning, record existing matching artifacts under `.dreamers/reviews/{vigil,sentinel,probe,hone}-*.md` so stale files are never mistaken for this run.
-- For multiple selected reviewers, launch every selected reviewer concurrently through parallel `multi_agent_v1.spawn_agent` calls, then wait for all of them. Never spawn or await reviewers sequentially.
+- For multiple selected reviewers, launch every selected reviewer concurrently through `multi_agent_v1.spawn_agent`, then wait for all of them. Never spawn or await reviewers sequentially.
 - Vigil and single-lens modes spawn only the chosen reviewer.
 - Every reviewer prompt MUST include `Do NOT call update_plan.`
 - Every reviewer prompt MUST include the review basis: either the absolute plan path or the inferred-intent summary with its evidence and confidence. For a plan-bound review with a resolved Grill transcript, include its absolute path and full verbatim contents; require the reviewer to use it when checking intent alignment and to report any plan/transcript conflict rather than silently choosing one. Explicitly say `no plan binding` for inferred-intent reviews.
@@ -74,13 +72,11 @@ Lane choices:
 
 ## Dreamers Kernel
 <dreamers-kernel>
-# Dreamers Kernel
-
 ## User overrides
 
 Explicit user instructions can skip or alter phases/actions.
 
-## Subagent allowlist (HARD RULE)
+## Subagent allowlist
 
 Do not use any non-Dreamers agent unless explicitly authorized by user.
 
@@ -95,15 +91,13 @@ Every delegated Dreamers role invocation with `multi_agent_v1.spawn_agent` MUST 
 - **Plan file path** — absolute path to the relevant plan file (if applicable)
 - **Mandatory line:** `Do NOT call update_plan. The parent Dreamers skill owns the plan.`
 
-After spawning a required Dreamers role, call `multi_agent_v1.wait_agent` when the result is needed before continuing.
+After spawning a required Dreamers role, wait for its result before continuing. Launch all selected reviewers before waiting in a parallel review lane.
 
 ## Implementation discipline
 
-- **Plan adherence:** edit only files in the plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
-- **No spec-arguing comments:** never add a code comment that argues the spec permits a pattern.
+- **Scope adherence:** edit only files in the task or plan's scope. No while-I'm-here cleanup, no unrelated refactors mixed with feature work.
 - **Branch identity check:** before the first edit, `git log --oneline -3`. Confirm the branch and recent commits match the expected feature. If not, halt and surface.
 - **No dependency installs without permission.** Don't run `npm install`, `pip install`, etc. without explicit user approval.
-- **Type-check before declaring implementation done.** Run the project's type-check command from `AGENTS.md`, `CODEX.md`, or `.github/copilot-instructions.md` when present, and fix errors before moving on.
 
 ## Commit trailer
 
@@ -151,17 +145,11 @@ Reviewers are read-only / report-only for code, tests, docs, config, scripts, an
 </reviewer-findings-format>
 
 <logging-discipline>
-# Logging Discipline
-
-Rules for log calls — what to write, what to flag in review.
-
 1. **Project rule first.** If `.github/instructions/logging.instructions.md` exists, it is the binding spec.
 2. **Else: match surrounding code.** Existing log calls in the same module and nearest neighbors define:
    - Logger library / import path (do not introduce a new logger where one already exists).
    - Level conventions in use (ERROR / WARN / INFO / DEBUG, or whatever the codebase uses).
    - Message format (structured fields vs interpolated strings, key names, casing).
-3. **Never log:** secrets, tokens, PII, full request/response bodies. No exceptions.
-4. **Neither rule yields a clear answer** → ask the user rather than guessing.
 </logging-discipline>
 
 <agent-recovery>
@@ -170,6 +158,6 @@ Rules for log calls — what to write, what to flag in review.
 When a spawned agent hits a rate limit, crashes, or times out mid-run:
 1. Read whatever workspace files the agent managed to write before failing.
 2. Determine which steps completed and which remain (check workspace outputs, git log, test results).
-3. Complete remaining steps directly (you have the local file and shell tools available in the main conversation) or re-spawn the agent scoped to only the remaining work.
+3. Complete remaining steps directly (you have Codex file and shell tools in the main conversation) or re-spawn the agent scoped to only the remaining work.
 4. Do not re-run steps that already completed — build on partial progress.
 </agent-recovery>

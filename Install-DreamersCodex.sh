@@ -43,13 +43,20 @@ done
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 legacy_agent_names=(echo forge hone nova probe sage sentinel)
-legacy_agent_toml_names=(bolt)
+legacy_agent_toml_names=(bolt forge nova sage)
 obsolete_managed_files=(
   dreamers/instructions/comment-rules.instructions.md
   dreamers/instructions/git.instructions.md
   dreamers/templates/plan-writing-guide.md
+  dreamers/refs/hone-architecture-rubric.md
+  dreamers/refs/plan-quality.md
+  dreamers/refs/plan-selection.md
+  dreamers/templates/plan-guide-selector.md
+  dreamers/templates/plan-guide-lite.md
+  dreamers/templates/plan-guide-standard.md
+  dreamers/templates/plan-guide-complex.md
 )
-legacy_skill_names=(dreamers-full)
+legacy_skill_names=(dreamers-full dreamers-research)
 
 copy_dreamers_files() {
   local from="$1"
