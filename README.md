@@ -48,7 +48,7 @@ Mention the skill name in a Codex request:
 - `dreamers-find-refactors` for refactor discovery: select lenses, section the repo, run section-scoped Hone audits, synthesize findings, write Dreamers plan files, then stop.
 - `dreamers-new-project` for project bootstrap: discovery, optional user-approved existing-solutions research, stack selection, brief, and shell plans.
 - `dreamers-explain` for thorough, read-only explanations of topics, code, documents, systems, and decisions, with authoritative sources when needed.
-- `dreamers-pr-resolve` for PR feedback resolution; Vigil reviews accepted changes and deferred Vigil findings are appended to project-root `defered.md`.
+- `dreamers-pr-resolve` for PR feedback resolution; Vigil reviews accepted fixes, deferred findings go to project-root `defered.md`, and each comment gets a `fixed: in commit <SHA>`, `blocked: <reason>` (needed but unable to fix), or `no-action: <reason>` (decided not to act) reply. Only fully fixed threads are resolved.
 - `dreamers-docs`, `dreamers-pr`, and the utility skills for narrower flows. `dreamers-pr` also archives shipped Dreamers plan artifacts after PR creation.
 
 All plans use Goal, Scope and context, and Acceptance Criteria. Validation checks belong with their ACs. Lite, standard, and complex select review lanes: Vigil; Sentinel + Probe; or Sentinel + Probe + Hone. Explicit plan or user direction overrides that mapping. Useful flow diagrams or UI wireframes belong in Scope and context.
