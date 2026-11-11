@@ -63,4 +63,4 @@ Use `scripts/sync-refs.ps1 -Verify` or `scripts/sync-refs.sh -Verify` to check i
 
 ## Maintaining Dreamers
 
-Use `dreamers-update` for changes to Dreamers system files. The Copilot repo (`C:\projects\dreamers-copilot`) remains the upstream source of truth; the skill branches, applies, validates, commits, pushes, and opens the Copilot PR first. It then stops for user approval, supports repeated Copilot PR revisions, and transfers to Codex only after approval.
+Use `dreamers-update` for changes to Dreamers system files. The Copilot repo (`C:\projects\dreamers-copilot`) remains the upstream source of truth; the skill branches, applies, validates, commits, pushes, and opens the Copilot PR first. It then stops for user approval, supports repeated Copilot PR revisions, and transfers to Codex only after approval. After validating and committing the Codex change, it refreshes the local Codex installation with the force flag, backs up existing managed files, and verifies installed bytes against the source. Start a new Codex session to load the refreshed package.
